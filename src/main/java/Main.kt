@@ -1,6 +1,7 @@
 import java.io.File
 import java.util.*
 import java.util.Calendar.*
+import kotlin.math.max
 import kotlin.text.Charsets.ISO_8859_1
 
 const val NULL = "NULL"
@@ -10,12 +11,79 @@ fun main(){
     //baseAlunos()
     //baseDengue()
     //baseOnibus()
-    contarIdades("${path}Base de Alunos3 Editado.csv", "${path}Histograma Idades Aluno.csv")
-    contarIdades("${path}Base de Onibus3 Editado.csv", "${path}Histograma Idades Onibus.csv")
-    contarIdades("${path}Base de Dengue3 Editado.csv", "${path}Histograma Idades Dengue.csv")
+    //contarIdades("${path}Base de Alunos3 Editado.csv", "${path}Histograma Idades Aluno.csv")
+    //contarIdades("${path}Base de Onibus3 Editado.csv", "${path}Histograma Idades Onibus.csv")
+    //contarIdades("${path}Base de Dengue3 Editado.csv", "${path}Histograma Idades Dengue.csv")
+    parearBairros("${path}bairros.txt","${path}Base de Alunos3 Editado.csv", "${path}Base de Alunos3 Pareamento Bairros.csv")
+    parearBairros("${path}bairros.txt","${path}Base de Onibus3 Editado.csv", "${path}Base de Onibus3 Pareamento Bairros.csv")
+    parearBairros("${path}bairros.txt","${path}Base de Dengue3 Editado.csv", "${path}Base de Dengue3 Pareamento Bairros.csv")
 }
 
-fun contarIdades(sourcePath: String, countPath: String){
+fun parearBairros(bairrosListPath: String, sourcePath: String, endPath: String){
+    val csv = readCSV(sourcePath)
+    val colunaBairro = getColumnIndex(csv, "Bairro")
+    if(colunaBairro > -1){
+        val bairros = readTXTList(bairrosListPath)
+        val colunaPorcSimilar = addNewColumn(csv, "porcSimilar")
+        val colunaBairroPareado = addNewColumn(csv, "bairroPareado")
+
+        for(i in 1 until csv.size){
+            val bairroAtual = csv[i][colunaBairro]
+
+            var maiorPorc = 0.0
+            var bairroMaisParecido = NULL
+            for(bairro in bairros){
+                val porc = levenshteinPercentage(bairro, bairroAtual)
+                if(porc > maiorPorc){
+                    maiorPorc = porc
+                    bairroMaisParecido = bairro
+                }
+            }
+
+            csv[i][colunaPorcSimilar] = maiorPorc.toString()
+            csv[i][colunaBairroPareado] = bairroMaisParecido
+        }
+
+        writeCSV(endPath, csv)
+    }
+}
+
+fun levenshteinPercentage(string1: String, string2: String) = 1.0 - (levenshteinDistance(string1, string2).toDouble() / max(string1.length.toDouble(), string2.length.toDouble()))
+
+fun levenshteinDistance(string1: String, string2: String): Int {
+
+    val numLinhas = string1.length + 1
+    val numColunas = string2.length + 1
+
+    val matriz = Array(numLinhas){ IntArray(numColunas) }
+
+    //Inicializar a linha e a coluna dos vazios
+    for(i in 0 until numLinhas){
+        matriz[i][0] = i
+    }
+
+    for(i in 0 until numColunas){
+        matriz[0][i] = i
+    }
+
+    for(i in 1 until numLinhas){
+        for(j in 1 until numColunas){
+            matriz[i][j] = if(string1[i - 1] == string2[j - 1]){
+                matriz[i - 1][j - 1]
+            }else{
+                val replace = matriz[i - 1][j - 1]
+                val insert = matriz[i][j - 1]
+                val delete = matriz[i - 1][j]
+
+                minOf(replace, insert, delete) + 1
+            }
+        }
+    }
+
+    return matriz[numLinhas - 1][numColunas - 1]
+}
+
+fun contarIdades(sourcePath: String, endPath: String){
     val csv = readCSV(sourcePath)
     val colunaIdade = getColumnIndex(csv, "idade")
 
@@ -38,7 +106,7 @@ fun contarIdades(sourcePath: String, countPath: String){
         novoCSV.add(mutableListOf(key.toString(), mapaOrdenado[key].toString()))
     }
 
-    writeCSV(countPath, novoCSV)
+    writeCSV(endPath, novoCSV)
 }
 
 fun baseAlunos(){
@@ -152,6 +220,15 @@ fun writeCSV(filepath: String, csv: MutableList<MutableList<String>>, sep: Strin
             out.println(linhaTexto)
         }
     }
+}
+
+fun readTXTList(filepath: String): MutableList<String> {
+    val lista = mutableListOf<String>()
+
+    for(linhasTexto in File(filepath).readLines()){
+        lista.add(linhasTexto)
+    }
+    return lista
 }
 
 fun getColumnIndex(csv: List<List<String>>, texto: String) = csv[0].indexOfFirst { it == texto }
