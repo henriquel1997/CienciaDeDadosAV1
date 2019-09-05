@@ -1,27 +1,60 @@
 import java.io.File
 import java.util.*
+import java.util.Calendar.*
 import kotlin.text.Charsets.ISO_8859_1
 
 const val NULL = "NULL"
 
 fun main(){
+    val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\"
     //baseAlunos()
     //baseDengue()
-    baseOnibus()
+    //baseOnibus()
+    contarIdades("${path}Base de Alunos3 Editado.csv", "${path}Histograma Idades Aluno.csv")
+    contarIdades("${path}Base de Onibus3 Editado.csv", "${path}Histograma Idades Onibus.csv")
+    contarIdades("${path}Base de Dengue3 Editado.csv", "${path}Histograma Idades Dengue.csv")
+}
+
+fun contarIdades(sourcePath: String, countPath: String){
+    val csv = readCSV(sourcePath)
+    val colunaIdade = getColumnIndex(csv, "idade")
+
+    val mapa = hashMapOf<Int, Int>()
+    for(i in 1 until csv.size){
+        csv[i][colunaIdade].toIntOrNull()?.let { idade ->
+            if(!mapa.containsKey(idade)){
+                mapa[idade] = 1
+            }else{
+                mapa[idade]?.let { mapa[idade] = it + 1 }
+            }
+        }
+    }
+
+    val novoCSV = mutableListOf<MutableList<String>>()
+    novoCSV.add(mutableListOf("idade", "quantidade"))
+
+    val mapaOrdenado = mapa.toSortedMap()
+    for(key in mapaOrdenado.keys){
+        novoCSV.add(mutableListOf(key.toString(), mapaOrdenado[key].toString()))
+    }
+
+    writeCSV(countPath, novoCSV)
 }
 
 fun baseAlunos(){
     val csv = readCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Alunos3.csv")
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaDataEditada = addNewColumn(csv, "dataEditada")
+    val colunaIdade = addNewColumn(csv, "idade")
 
     val calendar = Calendar.getInstance()
 
     var linhasSemData = 0
 
     for(i in 1 until csv.size){
-        val data = processarData(csv[i][colunaData], calendar, i, anoMin = 1940, sep = "-")
+        val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "-")
         csv[i][colunaDataEditada] = data
+        csv[i][colunaIdade] = idade.toString()
 
         if(data == NULL){
             linhasSemData++
@@ -37,6 +70,7 @@ fun baseDengue(){
     val csv = readCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Dengue3.csv")
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaDataEditada = addNewColumn(csv, "dataEditada")
+    val colunaIdade = addNewColumn(csv, "idade")
     val colunaDataDengue = getColumnIndex(csv, "Data da Dengue")
     val colunaDataDengueEditada = addNewColumn(csv, "dataDengueEditada")
 
@@ -46,10 +80,11 @@ fun baseDengue(){
     var linhasDengueSemData = 0
 
     for(i in 1 until csv.size){
-        val data = processarData(csv[i][colunaData], calendar, i, anoMin = 1900, sep = "/")
+        val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "/")
         csv[i][colunaDataEditada] = data
+        csv[i][colunaIdade] = idade.toString()
 
-        val dataDengue = processarData(csv[i][colunaDataDengue], calendar, i, anoMin = 1900, sep = "/")
+        val (dataDengue, _) = processarData(csv[i][colunaDataDengue], calendar, i, sep = "/")
         csv[i][colunaDataDengueEditada] = dataDengue
 
         if(data == NULL){
@@ -71,14 +106,16 @@ fun baseOnibus(){
     csv.igualarLinhas()
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaDataEditada = addNewColumn(csv, "dataEditada")
+    val colunaIdade = addNewColumn(csv, "idade")
 
     val calendar = Calendar.getInstance()
 
     var linhasSemData = 0
 
     for(i in 1 until csv.size){
-        val data = processarDataSemBarra(csv[i][colunaData], calendar, i, anoMin = 1900)
+        val (data, idade) = processarDataSemBarra(csv[i][colunaData], calendar, i)
         csv[i][colunaDataEditada] = data
+        csv[i][colunaIdade] = idade.toString()
 
         if(data == NULL){
             linhasSemData++
@@ -153,7 +190,17 @@ fun setupDateString(string: String): String {
     return string
 }
 
-fun processarData(data: String, calendar: Calendar, index: Int, anoMin: Int = 0, sep: String = "/"): String {
+fun getYearDiff(a: Calendar, b: Calendar): Int {
+    var diff = b.get(YEAR) - a.get(YEAR)
+
+    if(a.get(MONTH) > b.get(MONTH) || (a.get(MONTH) == b.get(MONTH)) && (a.get(DATE) > b.get(DATE))){
+        diff--
+    }
+
+    return diff
+}
+
+fun processarData(data: String, calendar: Calendar, index: Int, anoMin: Int = 0, sep: String = "/", limitarPeloDiaAtual: Boolean = false): Pair<String, Int> {
     val valores = data.split(sep, ":", " ")
 
     if(valores.size >= 3){
@@ -166,8 +213,10 @@ fun processarData(data: String, calendar: Calendar, index: Int, anoMin: Int = 0,
                         if(dia in 1..diaMax){
                             val dataAtual = calendar.timeInMillis
                             val dataValor = calData.timeInMillis
-                            if(dataValor < dataAtual){
-                                return setupDateString(valores[2])+setupDateString(valores[1])+setupDateString(valores[0])
+                            if(!limitarPeloDiaAtual || dataValor < dataAtual){
+                                val dataPadronizada = setupDateString(valores[2])+setupDateString(valores[1])+setupDateString(valores[0])
+                                val idade = getYearDiff(calData, calendar)
+                                return Pair(dataPadronizada, idade)
                             }
                         }
                     }
@@ -178,10 +227,10 @@ fun processarData(data: String, calendar: Calendar, index: Int, anoMin: Int = 0,
 
     println("$index - Data errada: $data")
 
-    return NULL
+    return Pair(NULL, Integer.MIN_VALUE)
 }
 
-fun processarDataSemBarra(data: String, calendar: Calendar, index: Int, anoMin: Int = 0): String {
+fun processarDataSemBarra(data: String, calendar: Calendar, index: Int, anoMin: Int = 0): Pair<String, Int> {
 
     data.toIntOrNull()?.let { numero ->
         val dataSemZero = numero.toString()
@@ -193,9 +242,9 @@ fun processarDataSemBarra(data: String, calendar: Calendar, index: Int, anoMin: 
             7 -> {
                 val dataComUltimaBarra = dataSemZero.substring(0, 3) + "/" + dataSemZero.substring(3, dataSemZero.length)
                 val dataComDoisDigDia = dataComUltimaBarra.substring(0, 2) + "/" + dataComUltimaBarra.substring(2, dataComUltimaBarra.length)
-                val resultadoDoisDig = processarData(dataComDoisDigDia, calendar, index, anoMin)
-                if(resultadoDoisDig != NULL){
-                    return resultadoDoisDig
+                val parDoisDig = processarData(dataComDoisDigDia, calendar, index, anoMin)
+                if(parDoisDig.first != NULL){
+                    return parDoisDig
                 }
 
                 val dataComUmDigDia = dataComUltimaBarra.substring(0, 1) + "/" + dataComUltimaBarra.substring(1, dataComUltimaBarra.length)
@@ -213,5 +262,5 @@ fun processarDataSemBarra(data: String, calendar: Calendar, index: Int, anoMin: 
 
     println("$index - Data errada: $data")
 
-    return NULL
+    return Pair(NULL, Integer.MIN_VALUE)
 }
