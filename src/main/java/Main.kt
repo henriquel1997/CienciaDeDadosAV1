@@ -1,116 +1,39 @@
 import java.io.File
 import java.util.*
 import java.util.Calendar.*
-import kotlin.math.max
 import kotlin.text.Charsets.ISO_8859_1
 
 const val NULL = "NULL"
+const val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\"
+
+const val minIdadeAlunos = 0
+const val maxIdadeAlunos = 57
+
+const val minIdadeDengue = 0
+const val maxIdadeDengue = 127
+
+const val minIdadeOnibus = 0
+const val maxIdadeOnibus = 126
 
 fun main(){
-    val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\"
-    //baseAlunos()
-    //baseDengue()
-    //baseOnibus()
-    //contarIdades("${path}Base de Alunos3 Editado.csv", "${path}Histograma Idades Aluno.csv")
-    //contarIdades("${path}Base de Onibus3 Editado.csv", "${path}Histograma Idades Onibus.csv")
-    //contarIdades("${path}Base de Dengue3 Editado.csv", "${path}Histograma Idades Dengue.csv")
-    parearBairros("${path}bairros.txt","${path}Base de Alunos3 Editado.csv", "${path}Base de Alunos3 Pareamento Bairros.csv")
-    parearBairros("${path}bairros.txt","${path}Base de Onibus3 Editado.csv", "${path}Base de Onibus3 Pareamento Bairros.csv")
-    parearBairros("${path}bairros.txt","${path}Base de Dengue3 Editado.csv", "${path}Base de Dengue3 Pareamento Bairros.csv")
-}
-
-fun parearBairros(bairrosListPath: String, sourcePath: String, endPath: String){
-    val csv = readCSV(sourcePath)
-    val colunaBairro = getColumnIndex(csv, "Bairro")
-    if(colunaBairro > -1){
-        val bairros = readTXTList(bairrosListPath)
-        val colunaPorcSimilar = addNewColumn(csv, "porcSimilar")
-        val colunaBairroPareado = addNewColumn(csv, "bairroPareado")
-
-        for(i in 1 until csv.size){
-            val bairroAtual = csv[i][colunaBairro]
-
-            var maiorPorc = 0.0
-            var bairroMaisParecido = NULL
-            for(bairro in bairros){
-                val porc = levenshteinPercentage(bairro, bairroAtual)
-                if(porc > maiorPorc){
-                    maiorPorc = porc
-                    bairroMaisParecido = bairro
-                }
-            }
-
-            csv[i][colunaPorcSimilar] = maiorPorc.toString()
-            csv[i][colunaBairroPareado] = bairroMaisParecido
-        }
-
-        writeCSV(endPath, csv)
-    }
-}
-
-fun levenshteinPercentage(string1: String, string2: String) = 1.0 - (levenshteinDistance(string1, string2).toDouble() / max(string1.length.toDouble(), string2.length.toDouble()))
-
-fun levenshteinDistance(string1: String, string2: String): Int {
-
-    val numLinhas = string1.length + 1
-    val numColunas = string2.length + 1
-
-    val matriz = Array(numLinhas){ IntArray(numColunas) }
-
-    //Inicializar a linha e a coluna dos vazios
-    for(i in 0 until numLinhas){
-        matriz[i][0] = i
-    }
-
-    for(i in 0 until numColunas){
-        matriz[0][i] = i
-    }
-
-    for(i in 1 until numLinhas){
-        for(j in 1 until numColunas){
-            matriz[i][j] = if(string1[i - 1] == string2[j - 1]){
-                matriz[i - 1][j - 1]
-            }else{
-                val replace = matriz[i - 1][j - 1]
-                val insert = matriz[i][j - 1]
-                val delete = matriz[i - 1][j]
-
-                minOf(replace, insert, delete) + 1
-            }
-        }
-    }
-
-    return matriz[numLinhas - 1][numColunas - 1]
-}
-
-fun contarIdades(sourcePath: String, endPath: String){
-    val csv = readCSV(sourcePath)
-    val colunaIdade = getColumnIndex(csv, "idade")
-
-    val mapa = hashMapOf<Int, Int>()
-    for(i in 1 until csv.size){
-        csv[i][colunaIdade].toIntOrNull()?.let { idade ->
-            if(!mapa.containsKey(idade)){
-                mapa[idade] = 1
-            }else{
-                mapa[idade]?.let { mapa[idade] = it + 1 }
-            }
-        }
-    }
-
-    val novoCSV = mutableListOf<MutableList<String>>()
-    novoCSV.add(mutableListOf("idade", "quantidade"))
-
-    val mapaOrdenado = mapa.toSortedMap()
-    for(key in mapaOrdenado.keys){
-        novoCSV.add(mutableListOf(key.toString(), mapaOrdenado[key].toString()))
-    }
-
-    writeCSV(endPath, novoCSV)
+    baseAlunos()
+    baseDengue()
+    baseOnibus()
 }
 
 fun baseAlunos(){
-    val csv = readCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Alunos3.csv")
+    val csv = readCSV("${path}Base de Alunos3.csv")
+
+    val colunaNome = getColumnIndex(csv, "Nome")
+    val colunaNomeEditado = addNewColumn(csv, "nomeEditado")
+    val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
+    val colunaNomePaiEditado = addNewColumn(csv, "nomeDoPaiEditado")
+    val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
+    val colunaNomeMaeEditado = addNewColumn(csv, "nomeDaMaeEditado")
+
+    val colunaSexo = getColumnIndex(csv, "Sexo")
+    val colunaSexoEditado = addNewColumn(csv, "sexoEditado")
+
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaDataEditada = addNewColumn(csv, "dataEditada")
     val colunaIdade = addNewColumn(csv, "idade")
@@ -120,9 +43,28 @@ fun baseAlunos(){
     var linhasSemData = 0
 
     for(i in 1 until csv.size){
+        val nome = csv[i][colunaNome]
+        csv[i][colunaNomeEditado] = nome.padronizarNome()
+
+        val nomePai = csv[i][colunaNomePai]
+        csv[i][colunaNomePaiEditado] = nomePai.padronizarNome()
+
+        val nomeMae = csv[i][colunaNomeMae]
+        csv[i][colunaNomeMaeEditado] = nomeMae.padronizarNome()
+
+        csv[i][colunaSexoEditado] = csv[i][colunaSexo].toUpperCase()
+
         val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "-")
         csv[i][colunaDataEditada] = data
         csv[i][colunaIdade] = idade.toString()
+
+        if(idade in minIdadeAlunos..maxIdadeAlunos){
+            csv[i][colunaDataEditada] = data
+            csv[i][colunaIdade] = idade.toString()
+        }else{
+            csv[i][colunaDataEditada] = ""
+            csv[i][colunaIdade] = ""
+        }
 
         if(data == NULL){
             linhasSemData++
@@ -131,11 +73,24 @@ fun baseAlunos(){
 
     println("Linhas sem data: $linhasSemData")
 
-    writeCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Alunos3 Editado.csv", csv)
+    val csvComBairrosPareados = parearBairros(csv, "${path}bairros.txt")
+
+    writeCSV("${path}Base de Alunos3 Editado.csv", csvComBairrosPareados)
 }
 
 fun baseDengue(){
-    val csv = readCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Dengue3.csv")
+    val csv = readCSV("${path}Base de Dengue3.csv")
+
+    val colunaNome = getColumnIndex(csv, "Nome")
+    val colunaNomeEditado = addNewColumn(csv, "nomeEditado")
+    val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
+    val colunaNomePaiEditado = addNewColumn(csv, "nomeDoPaiEditado")
+    val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
+    val colunaNomeMaeEditado = addNewColumn(csv, "nomeDaMaeEditado")
+
+    val colunaSexo = getColumnIndex(csv, "Sexo")
+    val colunaSexoEditado = addNewColumn(csv, "sexoEditado")
+
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaDataEditada = addNewColumn(csv, "dataEditada")
     val colunaIdade = addNewColumn(csv, "idade")
@@ -148,12 +103,36 @@ fun baseDengue(){
     var linhasDengueSemData = 0
 
     for(i in 1 until csv.size){
+        val nome = csv[i][colunaNome]
+        csv[i][colunaNomeEditado] = nome.padronizarNome()
+
+        val nomePai = csv[i][colunaNomePai]
+        csv[i][colunaNomePaiEditado] = nomePai.padronizarNome()
+
+        val nomeMae = csv[i][colunaNomeMae]
+        csv[i][colunaNomeMaeEditado] = nomeMae.padronizarNome()
+
+        csv[i][colunaSexoEditado] = csv[i][colunaSexo].toUpperCase()
+
         val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "/")
         csv[i][colunaDataEditada] = data
         csv[i][colunaIdade] = idade.toString()
 
+        if(idade in minIdadeDengue..maxIdadeDengue){
+            csv[i][colunaDataEditada] = data
+            csv[i][colunaIdade] = idade.toString()
+        }else{
+            csv[i][colunaDataEditada] = ""
+            csv[i][colunaIdade] = ""
+        }
+
         val (dataDengue, _) = processarData(csv[i][colunaDataDengue], calendar, i, sep = "/")
-        csv[i][colunaDataDengueEditada] = dataDengue
+
+        if((data == NULL && dataDengue != NULL) || (data != NULL && dataDengue != NULL && dataDengue.toInt() > data.toInt())){
+            csv[i][colunaDataDengueEditada] = dataDengue
+        }else{
+            csv[i][colunaDataDengueEditada] = ""
+        }
 
         if(data == NULL){
             linhasSemData++
@@ -166,12 +145,25 @@ fun baseDengue(){
     println("Linhas sem data de nascimento: $linhasSemData")
     println("Linhas sem data da dengue: $linhasDengueSemData")
 
-    writeCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Dengue3 Editado.csv", csv)
+    val csvComBairrosPareados = parearBairros(csv, "${path}bairros.txt")
+
+    writeCSV("${path}Base de Dengue3 Editado.csv", csvComBairrosPareados)
 }
 
 fun baseOnibus(){
-    val csv = readCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Onibus3.csv")
+    val csv = readCSV("${path}Base de Onibus3.csv")
     csv.igualarLinhas()
+
+    val colunaNome = getColumnIndex(csv, "Nome")
+    val colunaNomeEditado = addNewColumn(csv, "nomeEditado")
+    val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
+    val colunaNomePaiEditado = addNewColumn(csv, "nomeDoPaiEditado")
+    val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
+    val colunaNomeMaeEditado = addNewColumn(csv, "nomeDaMaeEditado")
+
+    val colunaSexo = getColumnIndex(csv, "Sexo")
+    val colunaSexoEditado = addNewColumn(csv, "sexoEditado")
+
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaDataEditada = addNewColumn(csv, "dataEditada")
     val colunaIdade = addNewColumn(csv, "idade")
@@ -181,9 +173,26 @@ fun baseOnibus(){
     var linhasSemData = 0
 
     for(i in 1 until csv.size){
+        val nome = csv[i][colunaNome]
+        csv[i][colunaNomeEditado] = nome.padronizarNome()
+
+        val nomePai = csv[i][colunaNomePai]
+        csv[i][colunaNomePaiEditado] = nomePai.padronizarNome()
+
+        val nomeMae = csv[i][colunaNomeMae]
+        csv[i][colunaNomeMaeEditado] = nomeMae.padronizarNome()
+
+        csv[i][colunaSexoEditado] = if(csv[i][colunaSexo].toUpperCase() == "H") "M" else "F"
+
         val (data, idade) = processarDataSemBarra(csv[i][colunaData], calendar, i)
-        csv[i][colunaDataEditada] = data
-        csv[i][colunaIdade] = idade.toString()
+
+        if(idade in minIdadeOnibus..maxIdadeOnibus){
+            csv[i][colunaDataEditada] = data
+            csv[i][colunaIdade] = idade.toString()
+        }else{
+            csv[i][colunaDataEditada] = ""
+            csv[i][colunaIdade] = ""
+        }
 
         if(data == NULL){
             linhasSemData++
@@ -192,7 +201,9 @@ fun baseOnibus(){
 
     println("Linhas sem data: $linhasSemData")
 
-    writeCSV("C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\Base de Onibus3 Editado.csv", csv)
+    val csvComBairrosPareados = parearBairros(csv, "${path}bairros.txt")
+
+    writeCSV("${path}Base de Onibus3 Editado.csv", csvComBairrosPareados)
 }
 
 fun readCSV(filepath: String, sep: String = ";"): MutableList<MutableList<String>> {
@@ -340,4 +351,79 @@ fun processarDataSemBarra(data: String, calendar: Calendar, index: Int, anoMin: 
     println("$index - Data errada: $data")
 
     return Pair(NULL, Integer.MIN_VALUE)
+}
+
+fun parearBairros(csv: MutableList<MutableList<String>>, bairrosListPath: String): MutableList<MutableList<String>> {
+    val colunaBairro = getColumnIndex(csv, "Bairro")
+    if(colunaBairro > -1){
+        val bairros = readTXTList(bairrosListPath)
+        val colunaPorcSimilar = addNewColumn(csv, "porcBairro")
+        val colunaBairroPareado = addNewColumn(csv, "bairroPareado")
+        val colunaIDBairroPareado = addNewColumn(csv, "idBairro")
+
+        var menorPorcentagem = Double.MAX_VALUE
+        var nomeBairro = ""
+        var nomeMaisParecido = ""
+
+        for(i in 1 until csv.size){
+            val bairroAtual = csv[i][colunaBairro]
+
+            var maiorPorc = 0.0
+            var bairroMaisParecido = NULL
+            var idBairroMaisParecido = -1
+
+            bairros.forEachIndexed { index, bairro ->
+                val porc = levenshteinPercentage(bairro, bairroAtual)
+                if(porc > maiorPorc){
+                    maiorPorc = porc
+                    bairroMaisParecido = bairro
+                    idBairroMaisParecido = index
+                }
+            }
+
+            if(maiorPorc < menorPorcentagem){
+                menorPorcentagem = maiorPorc
+                nomeBairro = bairroAtual
+                nomeMaisParecido = bairroMaisParecido
+            }
+
+            csv[i][colunaPorcSimilar] = maiorPorc.toString()
+            csv[i][colunaBairroPareado] = bairroMaisParecido
+            csv[i][colunaIDBairroPareado] = idBairroMaisParecido.toString()
+        }
+
+        println("Menor porcentagem: $menorPorcentagem - Nome: $nomeBairro, Mais parecido: $nomeMaisParecido")
+    }
+
+    return csv
+}
+
+fun parearBairros(bairrosListPath: String, sourcePath: String, endPath: String){
+    writeCSV(endPath, parearBairros(readCSV(sourcePath), bairrosListPath))
+}
+
+fun contarIdades(sourcePath: String, endPath: String){
+    val csv = readCSV(sourcePath)
+    val colunaIdade = getColumnIndex(csv, "idade")
+
+    val mapa = hashMapOf<Int, Int>()
+    for(i in 1 until csv.size){
+        csv[i][colunaIdade].toIntOrNull()?.let { idade ->
+            if(!mapa.containsKey(idade)){
+                mapa[idade] = 1
+            }else{
+                mapa[idade]?.let { mapa[idade] = it + 1 }
+            }
+        }
+    }
+
+    val novoCSV = mutableListOf<MutableList<String>>()
+    novoCSV.add(mutableListOf("idade", "quantidade"))
+
+    val mapaOrdenado = mapa.toSortedMap()
+    for(key in mapaOrdenado.keys){
+        novoCSV.add(mutableListOf(key.toString(), mapaOrdenado[key].toString()))
+    }
+
+    writeCSV(endPath, novoCSV)
 }
