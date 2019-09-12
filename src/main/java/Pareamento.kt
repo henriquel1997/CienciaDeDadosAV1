@@ -5,7 +5,6 @@ fun parearBairros(csv: MutableList<MutableList<String>>, bairrosListPath: String
     if(colunaBairro > -1){
         val bairros = readTXTList(bairrosListPath)
         val colunaPorcSimilar = addNewColumn(csv, "porcBairro")
-        val colunaBairroPareado = addNewColumn(csv, "bairroPareado")
         val colunaIDBairroPareado = addNewColumn(csv, "idBairro")
 
         var menorPorcentagem = Double.MAX_VALUE
@@ -35,7 +34,7 @@ fun parearBairros(csv: MutableList<MutableList<String>>, bairrosListPath: String
             }
 
             csv[i][colunaPorcSimilar] = maiorPorc.toString()
-            csv[i][colunaBairroPareado] = bairroMaisParecido
+            csv[i][colunaBairro] = bairroMaisParecido
             csv[i][colunaIDBairroPareado] = idBairroMaisParecido.toString()
         }
 
@@ -141,9 +140,19 @@ fun criarComparacaoPareamento(
         val colunaNome = getColumnIndex(csv, "Nome")
         val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
         val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
+        val colunaSexo = getColumnIndex(csv, "Sexo")
+        val colunaDataNascimento = getColumnIndex(csv, "Data de Nascimento")
+        val colunaBairro = getColumnIndex(csv, "Bairro")
+        val colunaIdade = getColumnIndex(csv, "idade")
+
         val colunaNomeDup = addNewColumn(csv, "Nome Duplicado")
         val colunaNomeMaeDup = addNewColumn(csv, "Nome da Mae Duplicado")
         val colunaNomePaiDup = addNewColumn(csv, "Nome do Pai Duplicado")
+        val colunaSexoDup = addNewColumn(csv, "Sexo Duplicado")
+        val colunaDataNascimentoDup = addNewColumn(csv, "Data de Nascimento Duplicado")
+        val colunaBairroDup = addNewColumn(csv, "Bairro Duplicado")
+        val colunaIdadeDup = addNewColumn(csv, "Idade Duplicado")
+
         val colunaId = addNewColumn(csv, "id Duplicado")
         val colunaPorcentagemCSV = addNewColumn(csv, "porcentagem")
 
@@ -163,11 +172,15 @@ fun criarComparacaoPareamento(
             }
 
             if(posMaior > -1){
-                csv[i][colunaId] = posMaior.toString()
+                csv[i][colunaId] = (posMaior - 1).toString()
                 csv[i][colunaPorcentagemCSV] = maiorPorcentagem.toString()
                 csv[i][colunaNomeDup] = csv[posMaior][colunaNome]
                 csv[i][colunaNomePaiDup] = csv[posMaior][colunaNomePai]
                 csv[i][colunaNomeMaeDup] = csv[posMaior][colunaNomeMae]
+                csv[i][colunaSexoDup] = csv[posMaior][colunaSexo]
+                csv[i][colunaDataNascimentoDup] = csv[posMaior][colunaDataNascimento]
+                csv[i][colunaBairroDup] = csv[posMaior][colunaBairro]
+                csv[i][colunaIdadeDup] = csv[posMaior][colunaIdade]
             }
         }
 

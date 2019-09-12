@@ -71,7 +71,8 @@ fun baseAlunos(){
 }
 
 fun parearDuplicatasAlunos(){
-    val csv = readCSV("${path}Base de Alunos3 Editado.csv")
+    val csvOriginal = readCSV("${path}Base de Alunos3 Editado.csv")
+    var csv = csvOriginal.copy()
 
     val colunaNome = getColumnIndex(csv, "Nome")
     val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
@@ -95,14 +96,41 @@ fun parearDuplicatasAlunos(){
 
     println("Checando Duplicatas Alunos:")
 
+    println("Media Nomes:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
+    }
+
+    writeCSV("${path}Base de Alunos3 Comparacao Media Nomes.csv", csv)
+
+    csv = csvOriginal.copy()
+
     println("Tudo concatenado:")
     criarComparacaoPareamento(csv){ linha1, linha2 ->
-        //        val linha1Conc = concatenarNomes(linha1)
-//        val linha2Conc = concatenarNomes(linha2)
-//
-//        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+        val linha1Conc = concatenarTudo(linha1)
+        val linha2Conc = concatenarTudo(linha2)
 
-        //(jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
+        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+    }
+
+    writeCSV("${path}Base de Alunos3 Comparacao.csv", csv)
+
+    csv = csvOriginal.copy()
+
+    println("Nomes concatenado:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        val linha1Conc = concatenarNomes(linha1)
+        val linha2Conc = concatenarNomes(linha2)
+
+        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+    }
+
+    writeCSV("${path}Base de Alunos3 Comparacao Nomes.csv", csv)
+
+    csv = csvOriginal.copy()
+
+    println("Media Tudo:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
         (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 7.0
     }
 
@@ -177,7 +205,9 @@ fun baseDengue(){
 }
 
 fun parearDuplicatasDengue(){
-    val csv = readCSV("${path}Base de Dengue3 Editado.csv")
+    val csvOriginal = readCSV("${path}Base de Dengue3 Editado.csv")
+
+    var csv = csvOriginal.copy()
 
     val colunaNome = getColumnIndex(csv, "Nome")
     val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
@@ -202,15 +232,42 @@ fun parearDuplicatasDengue(){
 
     println("Checando Duplicatas Dengue:")
 
+    println("Media Nomes:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
+    }
+
+    writeCSV("${path}Base de Dengue3 Comparacao Media Nomes.csv", csv)
+
+    csv = csvOriginal.copy()
+
     println("Tudo concatenado:")
     criarComparacaoPareamento(csv){ linha1, linha2 ->
-        //        val linha1Conc = concatenarNomes(linha1)
-//        val linha2Conc = concatenarNomes(linha2)
-//
-//        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+        val linha1Conc = concatenarTudo(linha1)
+        val linha2Conc = concatenarTudo(linha2)
 
-        //(jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
-        (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 7.0
+        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+    }
+
+    writeCSV("${path}Base de Dengue3 Comparacao.csv", csv)
+
+    csv = csvOriginal.copy()
+
+    println("Nomes concatenado:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        val linha1Conc = concatenarNomes(linha1)
+        val linha2Conc = concatenarNomes(linha2)
+
+        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+    }
+
+    writeCSV("${path}Base de Dengue3 Comparacao Nomes.csv", csv)
+
+    csv = csvOriginal.copy()
+
+    println("Media Tudo:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + jaroWrinklerOf(linha1, linha2, colunaDataDengue) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 8.0
     }
 
     writeCSV("${path}Base de Dengue3 Comparacao Media Tudo.csv", csv)
@@ -268,7 +325,9 @@ fun baseOnibus(){
 }
 
 fun parearDuplicatasOnibus(){
-    val csv = readCSV("${path}Base de Onibus3 Editado.csv")
+    val csvOriginal = readCSV("${path}Base de Onibus3 Editado.csv")
+
+    var csv = csvOriginal.copy()
 
     val colunaNome = getColumnIndex(csv, "Nome")
     val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
@@ -292,14 +351,41 @@ fun parearDuplicatasOnibus(){
 
     println("Checando Duplicatas Onibus:")
 
+    println("Media Nomes:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
+    }
+
+    writeCSV("${path}Base de Onibus3 Comparacao Media Nomes.csv", csv)
+
+    csv = csvOriginal.copy()
+
     println("Tudo concatenado:")
     criarComparacaoPareamento(csv){ linha1, linha2 ->
-        //        val linha1Conc = concatenarNomes(linha1)
-//        val linha2Conc = concatenarNomes(linha2)
-//
-//        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+        val linha1Conc = concatenarTudo(linha1)
+        val linha2Conc = concatenarTudo(linha2)
 
-        //(jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
+        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+    }
+
+    writeCSV("${path}Base de Onibus3 Comparacao.csv", csv)
+
+    csv = csvOriginal.copy()
+
+    println("Nomes concatenado:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
+        val linha1Conc = concatenarNomes(linha1)
+        val linha2Conc = concatenarNomes(linha2)
+
+        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+    }
+
+    writeCSV("${path}Base de Onibus3 Comparacao Nomes.csv", csv)
+
+    csv = csvOriginal.copy()
+
+    println("Media Tudo:")
+    criarComparacaoPareamento(csv){ linha1, linha2 ->
         (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 7.0
     }
 
@@ -312,4 +398,17 @@ fun Boolean.toDouble(): Double {
     }else{
         0.0
     }
+}
+
+fun MutableList<MutableList<String>>.copy(): MutableList<MutableList<String>> {
+    val newList = mutableListOf<MutableList<String>>()
+
+    for(i in 0 until size){
+        newList.add(mutableListOf())
+        for(texto in this[i]){
+            newList[i].add(texto)
+        }
+    }
+
+    return newList
 }
