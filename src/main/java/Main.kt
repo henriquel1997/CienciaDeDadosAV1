@@ -84,7 +84,7 @@ fun parearDuplicatasAlunos(){
     val colunaBairro = getColumnIndex(csv, "Bairro")
 
     val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaBairro]}${linha[colunaSexo]}"
+        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaBairro]}${linha[colunaIdade]}${linha[colunaSexo]}"
     }
 
     val contarVazios = { linha: MutableList<String> ->
@@ -191,7 +191,7 @@ fun parearDuplicatasDengue(){
     val colunaDataDengue = getColumnIndex(csv, "Data da Dengue")
 
     val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaDataDengue]}${linha[colunaBairro]}${linha[colunaSexo]}"
+        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaBairro]}${linha[colunaIdade]}${linha[colunaDataDengue]}${linha[colunaSexo]}"
     }
 
     val contarVazios = { linha: MutableList<String> ->
@@ -281,7 +281,7 @@ fun parearDuplicatasOnibus(){
     val colunaBairro = getColumnIndex(csv, "Bairro")
 
     val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaBairro]}${linha[colunaSexo]}"
+        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaBairro]}${linha[colunaIdade]}${linha[colunaSexo]}"
     }
 
     val contarVazios = { linha: MutableList<String> ->

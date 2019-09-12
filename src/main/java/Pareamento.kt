@@ -87,6 +87,8 @@ fun removerDuplicados(
     comparador: (linha1: MutableList<String>, linha2: MutableList<String>) -> Double,
     comparadorMaisCompleto: (linha: MutableList<String>, linhaMaisCompleta: MutableList<String>) -> Boolean
 ){
+    val tamanhoInicial = csv.size
+
     val tempo = measureTimeMillis {
         var i = 1
         while(i < csv.size){
@@ -124,9 +126,17 @@ fun removerDuplicados(
 
             i++
         }
+
+        for((index, linha) in csv.withIndex()){
+            if(index > 0){
+                linha[0] = (index - 1).toString()
+            }
+        }
     }
 
+    val tamanhoFinal = csv.size
     println("Tempo pareamento: ${tempo/1000} segundos")
+    println("Linhas removidas: ${tamanhoInicial - tamanhoFinal}")
 }
 
 fun criarComparacaoPareamento(
