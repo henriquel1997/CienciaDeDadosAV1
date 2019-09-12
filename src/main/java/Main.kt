@@ -12,10 +12,12 @@ const val maxIdadeDengue = 127
 const val minIdadeOnibus = 0
 const val maxIdadeOnibus = 126
 
+const val pontoCortePareamento = 0.89
+
 fun main(){
-//    baseAlunos()
-//    baseDengue()
-//    baseOnibus()
+    baseAlunos()
+    baseDengue()
+    baseOnibus()
     parearDuplicatasAlunos()
     parearDuplicatasDengue()
     parearDuplicatasOnibus()
@@ -71,8 +73,7 @@ fun baseAlunos(){
 }
 
 fun parearDuplicatasAlunos(){
-    val csvOriginal = readCSV("${path}Base de Alunos3 Editado.csv")
-    var csv = csvOriginal.copy()
+    val csv = readCSV("${path}Base de Alunos3 Editado.csv")
 
     val colunaNome = getColumnIndex(csv, "Nome")
     val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
@@ -80,61 +81,34 @@ fun parearDuplicatasAlunos(){
     val colunaSexo = getColumnIndex(csv, "Sexo")
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaIdade = getColumnIndex(csv, "idade")
-    val colunaIdBairro = getColumnIndex(csv, "idBairro")
-
-    val jaroWrinklerOf = { linha1: MutableList<String> , linha2: MutableList<String>, coluna: Int  ->
-        jaroWinklerSimilarity(linha1[coluna], linha2[coluna])
-    }
+    val colunaBairro = getColumnIndex(csv, "Bairro")
 
     val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaIdBairro]}${linha[colunaSexo]}"
+        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaBairro]}${linha[colunaSexo]}"
     }
 
-    val concatenarNomes = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}"
+    val contarVazios = { linha: MutableList<String> ->
+        var cont = 0
+        for(param in linha){
+            if(param.isEmpty())
+                cont++
+        }
+        cont
     }
 
-    println("Checando Duplicatas Alunos:")
+    println("Removendo Duplicatas Alunos:")
+    removerDuplicados(csv, pontoCortePareamento,
+        comparador = { linha1, linha2 ->
+            jaroWinklerSimilarity(concatenarTudo(linha1), concatenarTudo(linha2))
+        },
 
-    println("Media Nomes:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
-    }
+        comparadorMaisCompleto = { linha, linhaMaisCompleta ->
+            contarVazios(linha) < contarVazios(linhaMaisCompleta)
+        }
+    )
 
-    writeCSV("${path}Base de Alunos3 Comparacao Media Nomes.csv", csv)
 
-    csv = csvOriginal.copy()
-
-    println("Tudo concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarTudo(linha1)
-        val linha2Conc = concatenarTudo(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV("${path}Base de Alunos3 Comparacao.csv", csv)
-
-    csv = csvOriginal.copy()
-
-    println("Nomes concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarNomes(linha1)
-        val linha2Conc = concatenarNomes(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV("${path}Base de Alunos3 Comparacao Nomes.csv", csv)
-
-    csv = csvOriginal.copy()
-
-    println("Media Tudo:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 7.0
-    }
-
-    writeCSV("${path}Base de Alunos3 Comparacao Media Tudo.csv", csv)
+    writeCSV("${path}Base de Alunos3 Sem Duplicados.csv", csv)
 }
 
 fun baseDengue(){
@@ -205,9 +179,7 @@ fun baseDengue(){
 }
 
 fun parearDuplicatasDengue(){
-    val csvOriginal = readCSV("${path}Base de Dengue3 Editado.csv")
-
-    var csv = csvOriginal.copy()
+    val csv = readCSV("${path}Base de Dengue3 Editado.csv")
 
     val colunaNome = getColumnIndex(csv, "Nome")
     val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
@@ -215,62 +187,35 @@ fun parearDuplicatasDengue(){
     val colunaSexo = getColumnIndex(csv, "Sexo")
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaIdade = getColumnIndex(csv, "idade")
-    val colunaIdBairro = getColumnIndex(csv, "idBairro")
+    val colunaBairro = getColumnIndex(csv, "Bairro")
     val colunaDataDengue = getColumnIndex(csv, "Data da Dengue")
 
-    val jaroWrinklerOf = { linha1: MutableList<String> , linha2: MutableList<String>, coluna: Int  ->
-        jaroWinklerSimilarity(linha1[coluna], linha2[coluna])
-    }
-
     val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaDataDengue]}${linha[colunaIdBairro]}${linha[colunaSexo]}"
+        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaDataDengue]}${linha[colunaBairro]}${linha[colunaSexo]}"
     }
 
-    val concatenarNomes = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}"
+    val contarVazios = { linha: MutableList<String> ->
+        var cont = 0
+        for(param in linha){
+            if(param.isEmpty())
+                cont++
+        }
+        cont
     }
 
-    println("Checando Duplicatas Dengue:")
+    println("Removendo Duplicatas Dengue:")
+    removerDuplicados(csv, pontoCortePareamento,
+        comparador = { linha1, linha2 ->
+            jaroWinklerSimilarity(concatenarTudo(linha1), concatenarTudo(linha2))
+        },
 
-    println("Media Nomes:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
-    }
+        comparadorMaisCompleto = { linha, linhaMaisCompleta ->
+            contarVazios(linha) < contarVazios(linhaMaisCompleta)
+        }
+    )
 
-    writeCSV("${path}Base de Dengue3 Comparacao Media Nomes.csv", csv)
 
-    csv = csvOriginal.copy()
-
-    println("Tudo concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarTudo(linha1)
-        val linha2Conc = concatenarTudo(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV("${path}Base de Dengue3 Comparacao.csv", csv)
-
-    csv = csvOriginal.copy()
-
-    println("Nomes concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarNomes(linha1)
-        val linha2Conc = concatenarNomes(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV("${path}Base de Dengue3 Comparacao Nomes.csv", csv)
-
-    csv = csvOriginal.copy()
-
-    println("Media Tudo:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + jaroWrinklerOf(linha1, linha2, colunaDataDengue) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 8.0
-    }
-
-    writeCSV("${path}Base de Dengue3 Comparacao Media Tudo.csv", csv)
+    writeCSV("${path}Base de Dengue3 Sem Duplicados.csv", csv)
 }
 
 fun baseOnibus(){
@@ -325,9 +270,7 @@ fun baseOnibus(){
 }
 
 fun parearDuplicatasOnibus(){
-    val csvOriginal = readCSV("${path}Base de Onibus3 Editado.csv")
-
-    var csv = csvOriginal.copy()
+    val csv = readCSV("${path}Base de Onibus3 Editado.csv")
 
     val colunaNome = getColumnIndex(csv, "Nome")
     val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
@@ -335,61 +278,34 @@ fun parearDuplicatasOnibus(){
     val colunaSexo = getColumnIndex(csv, "Sexo")
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
     val colunaIdade = getColumnIndex(csv, "idade")
-    val colunaIdBairro = getColumnIndex(csv, "idBairro")
-
-    val jaroWrinklerOf = { linha1: MutableList<String> , linha2: MutableList<String>, coluna: Int  ->
-        jaroWinklerSimilarity(linha1[coluna], linha2[coluna])
-    }
+    val colunaBairro = getColumnIndex(csv, "Bairro")
 
     val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaIdBairro]}${linha[colunaSexo]}"
+        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaBairro]}${linha[colunaSexo]}"
     }
 
-    val concatenarNomes = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}"
+    val contarVazios = { linha: MutableList<String> ->
+        var cont = 0
+        for(param in linha){
+            if(param.isEmpty())
+                cont++
+        }
+        cont
     }
 
-    println("Checando Duplicatas Onibus:")
+    println("Removendo Duplicatas Onibus:")
+    removerDuplicados(csv, pontoCortePareamento,
+        comparador = { linha1, linha2 ->
+            jaroWinklerSimilarity(concatenarTudo(linha1), concatenarTudo(linha2))
+        },
 
-    println("Media Nomes:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
-    }
+        comparadorMaisCompleto = { linha, linhaMaisCompleta ->
+            contarVazios(linha) < contarVazios(linhaMaisCompleta)
+        }
+    )
 
-    writeCSV("${path}Base de Onibus3 Comparacao Media Nomes.csv", csv)
 
-    csv = csvOriginal.copy()
-
-    println("Tudo concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarTudo(linha1)
-        val linha2Conc = concatenarTudo(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV("${path}Base de Onibus3 Comparacao.csv", csv)
-
-    csv = csvOriginal.copy()
-
-    println("Nomes concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarNomes(linha1)
-        val linha2Conc = concatenarNomes(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV("${path}Base de Onibus3 Comparacao Nomes.csv", csv)
-
-    csv = csvOriginal.copy()
-
-    println("Media Tudo:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 7.0
-    }
-
-    writeCSV("${path}Base de Onibus3 Comparacao Media Tudo.csv", csv)
+    writeCSV("${path}Base de Onibus3 Sem Duplicados.csv", csv)
 }
 
 fun Boolean.toDouble(): Double {
@@ -412,3 +328,73 @@ fun MutableList<MutableList<String>>.copy(): MutableList<MutableList<String>> {
 
     return newList
 }
+
+/**Comparação antiga**/
+//fun parearDuplicatasDengue(){
+//    val csvOriginal = readCSV("${path}Base de Dengue3 Editado.csv")
+//
+//    var csv = csvOriginal.copy()
+//
+//    val colunaNome = getColumnIndex(csv, "Nome")
+//    val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
+//    val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
+//    val colunaSexo = getColumnIndex(csv, "Sexo")
+//    val colunaData = getColumnIndex(csv, "Data de Nascimento")
+//    val colunaIdade = getColumnIndex(csv, "idade")
+//    val colunaIdBairro = getColumnIndex(csv, "idBairro")
+//    val colunaDataDengue = getColumnIndex(csv, "Data da Dengue")
+//
+//    val jaroWrinklerOf = { linha1: MutableList<String> , linha2: MutableList<String>, coluna: Int  ->
+//        jaroWinklerSimilarity(linha1[coluna], linha2[coluna])
+//    }
+//
+//    val concatenarTudo = { linha: MutableList<String> ->
+//        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaDataDengue]}${linha[colunaIdBairro]}${linha[colunaSexo]}"
+//    }
+//
+//    val concatenarNomes = { linha: MutableList<String> ->
+//        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}"
+//    }
+//
+//    println("Checando Duplicatas Dengue:")
+//
+//    println("Media Nomes:")
+//    criarComparacaoPareamento(csv){ linha1, linha2 ->
+//        (jaroWinklerSimilarity(linha1[colunaNome], linha2[colunaNome]) + jaroWinklerSimilarity(linha1[colunaNomePai], linha2[colunaNomePai]) + jaroWinklerSimilarity(linha1[colunaNomeMae], linha2[colunaNomeMae])) / 3.0
+//    }
+//
+//    writeCSV("${path}Base de Dengue3 Comparacao Media Nomes.csv", csv)
+//
+//    csv = csvOriginal.copy()
+//
+//    println("Tudo concatenado:")
+//    criarComparacaoPareamento(csv){ linha1, linha2 ->
+//        val linha1Conc = concatenarTudo(linha1)
+//        val linha2Conc = concatenarTudo(linha2)
+//
+//        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+//    }
+//
+//    writeCSV("${path}Base de Dengue3 Comparacao.csv", csv)
+//
+//    csv = csvOriginal.copy()
+//
+//    println("Nomes concatenado:")
+//    criarComparacaoPareamento(csv){ linha1, linha2 ->
+//        val linha1Conc = concatenarNomes(linha1)
+//        val linha2Conc = concatenarNomes(linha2)
+//
+//        jaroWinklerSimilarity(linha1Conc, linha2Conc)
+//    }
+//
+//    writeCSV("${path}Base de Dengue3 Comparacao Nomes.csv", csv)
+//
+//    csv = csvOriginal.copy()
+//
+//    println("Media Tudo:")
+//    criarComparacaoPareamento(csv){ linha1, linha2 ->
+//        (jaroWrinklerOf(linha1, linha2, colunaNome) + jaroWrinklerOf(linha1, linha2, colunaNomePai) + jaroWrinklerOf(linha1, linha2, colunaNomeMae) + jaroWrinklerOf(linha1, linha2, colunaData) + jaroWrinklerOf(linha1, linha2, colunaDataDengue) + (linha1[colunaIdade] == linha2[colunaIdade]).toDouble() + (linha1[colunaIdBairro] == linha2[colunaIdBairro]).toDouble() + (linha1[colunaSexo] == linha2[colunaSexo]).toDouble()) / 8.0
+//    }
+//
+//    writeCSV("${path}Base de Dengue3 Comparacao Media Tudo.csv", csv)
+//}

@@ -83,49 +83,46 @@ fun parearBases(
 
 fun removerDuplicados(
     csv: MutableList<MutableList<String>>,
-    nomeColunaID: String,
-    porcentagemIgual: Double,
+    pontoDeCorte: Double,
     comparador: (linha1: MutableList<String>, linha2: MutableList<String>) -> Double,
-    comparadorMaisCompleto: (linha1: MutableList<String>, linha2: MutableList<String>) -> Boolean
+    comparadorMaisCompleto: (linha: MutableList<String>, linhaMaisCompleta: MutableList<String>) -> Boolean
 ){
     val tempo = measureTimeMillis {
-        val colunaID = addNewColumn(csv, nomeColunaID)
-
-        for(i in 1 until csv.size){
+        var i = 1
+        while(i < csv.size){
             val listaIguais = mutableListOf<Int>()
 
             val linhaCSV = csv[i]
             for(j in 1 until csv.size){
                 //Checa se não é a mesma linha
                 if(i != j){
-                    val porcentagem = comparador(linhaCSV, csv[j])
-                    if(porcentagem > porcentagemIgual){
+                    if(comparador(linhaCSV, csv[j]) >= pontoDeCorte){
                         listaIguais.add(j)
                     }
                 }
             }
 
-            //TODO: Remoção não está testada
-            var maisCompleto = linhaCSV
-            var posMaisCompleto = i
-            for(pos in listaIguais){
-                if(comparadorMaisCompleto(csv[pos], maisCompleto)){
-                    maisCompleto = csv[pos]
-                    posMaisCompleto = pos
-                }
-            }
+            if(listaIguais.isNotEmpty()){
+                listaIguais.add(0, i)
 
-            var cont = 0
-            for(pos in listaIguais){
-                if(pos != posMaisCompleto){
+                var maisCompleto = linhaCSV
+                var posMaisCompleto = i
+                for(pos in listaIguais){
+                    if(comparadorMaisCompleto(csv[pos], maisCompleto)){
+                        maisCompleto = csv[pos]
+                        posMaisCompleto = pos
+                    }
+                }
+
+                csv[i] = maisCompleto
+                listaIguais.remove(posMaisCompleto)
+
+                for((cont, pos) in listaIguais.withIndex()){
                     csv.removeAt(pos - cont)
-                    cont++
                 }
             }
 
-            if(posMaisCompleto != i){
-                csv.removeAt(i - cont)
-            }
+            i++
         }
     }
 
