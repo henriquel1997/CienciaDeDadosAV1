@@ -1,8 +1,9 @@
+import TipoComparacao.*
 import java.util.*
 
 const val NULL = "NULL"
-//const val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\" // Windows
-const val path = "/Users/henriquedelima/Downloads/Equipe4/" // Mac
+const val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\" // Windows
+//const val path = "/Users/henriquedelima/Downloads/Equipe4/" // Mac
 
 const val minIdadeAlunos = 0
 const val maxIdadeAlunos = 57
@@ -25,9 +26,62 @@ fun main(){
 //    parearDuplicatasAlunos()
 //    parearDuplicatasDengue()
 //    parearDuplicatasOnibus()
-    compararDuplicatas("${path}Base de Alunos3 Editado.csv", "${path}Base de Alunos3 Comparacao JaroW.csv")
-    compararDuplicatas("${path}Base de Dengue3 Editado.csv", "${path}Base de Dengue3 Comparacao JaroW.csv")
-    compararDuplicatas("${path}Base de Onibus3 Editado.csv", "${path}Base de Onibus3 Comparacao JaroW.csv")
+//    compararDuplicatas("${path}Base de Alunos3 Editado.csv", "${path}Base de Alunos3 Comparacao JaroW.csv")
+//    compararDuplicatas("${path}Base de Dengue3 Editado.csv", "${path}Base de Dengue3 Comparacao JaroW.csv")
+//    compararDuplicatas("${path}Base de Onibus3 Editado.csv", "${path}Base de Onibus3 Comparacao JaroW.csv")
+}
+
+enum class TipoComparacao{
+    JAROW, LEVEN, EQUALS
+}
+
+data class ColunasDuplicado(
+    val nomeColunaOriginal: String,
+    val nomeColunaDuplicado: String,
+    val nomeColunaPorc: String,
+    val algoritmo: TipoComparacao
+)
+
+fun pontuarDuplicados(nomeCSVInput: String, nomeCSVOutput: String){
+    val cd = listOf(ColunasDuplicado("", "", "", JAROW))
+}
+
+fun pontuarDuplicados(cd: List<ColunasDuplicado>, nomeCSVInput: String, nomeCSVOutput: String){
+    val csv = readCSV("$path$nomeCSVInput")
+
+    val mapNovasCol = hashMapOf<String, Int>()
+
+    for(info in cd){
+        mapNovasCol[info.nomeColunaPorc] = addNewColumn(csv, info.nomeColunaPorc)
+    }
+
+    for(i in 1 until csv.size){
+        for(info in cd){
+            val original = csv[i][getColumnIndex(csv, info.nomeColunaOriginal)]
+            val duplicado = csv[i][getColumnIndex(csv, info.nomeColunaDuplicado)]
+            val porcentagem = when(info.algoritmo){
+                JAROW -> {
+                    jaroWinklerSimilarity(original, duplicado)
+                }
+                LEVEN -> {
+                    levenshteinPercentage(original, duplicado)
+                }
+                EQUALS -> {
+                    if(original == (duplicado)){
+                        1.0
+                    }else{
+                        0.0
+                    }
+                }
+            }
+
+            mapNovasCol[info.nomeColunaPorc]?.let { pos ->
+                csv[i][pos] = porcentagem.toString()
+            }
+        }
+    }
+
+    writeCSV("$path$nomeCSVOutput", csv)
 }
 
 fun baseAlunos(){
