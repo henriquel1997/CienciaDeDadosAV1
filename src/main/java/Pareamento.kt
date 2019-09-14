@@ -4,7 +4,7 @@ fun parearBairros(csv: MutableList<MutableList<String>>, bairrosListPath: String
     val colunaBairro = getColumnIndex(csv, "Bairro")
     if(colunaBairro > -1){
         val bairros = readTXTList(bairrosListPath)
-        val colunaPorcSimilar = addNewColumn(csv, "porcBairro")
+        //val colunaPorcSimilar = addNewColumn(csv, "porcBairro")
         val colunaIDBairroPareado = addNewColumn(csv, "idBairro")
 
         var menorPorcentagem = Double.MAX_VALUE
@@ -33,7 +33,7 @@ fun parearBairros(csv: MutableList<MutableList<String>>, bairrosListPath: String
                 nomeMaisParecido = bairroMaisParecido
             }
 
-            csv[i][colunaPorcSimilar] = maiorPorc.toString()
+            //csv[i][colunaPorcSimilar] = maiorPorc.toString()
             csv[i][colunaBairro] = bairroMaisParecido
             csv[i][colunaIDBairroPareado] = idBairroMaisParecido.toString()
         }
@@ -52,6 +52,7 @@ fun parearBases(
     porcentagemIgual: Double,
     comparador: (linha1: MutableList<String>, linha2: MutableList<String>) -> Double
 ){
+    var numPareamentos = 0
     val tempo = measureTimeMillis {
         val colunaIDCSV1 = addNewColumn(csv1, nomeColunaIDCSV1)
         val colunaIDCSV2 = addNewColumn(csv2, nomeColunaIDCSV2)
@@ -62,7 +63,6 @@ fun parearBases(
 
             val linhaCSV1 = csv1[i]
             for(j in 1 until csv2.size){
-                //Checa se é a mesma linha, usar essa flag apenas quando comparar uma base com ela mesma
                 val porcentagem = comparador(linhaCSV1, csv2[j])
                 if(porcentagem > maiorPorcentagem){
                     maiorPorcentagem = porcentagem
@@ -73,11 +73,12 @@ fun parearBases(
             if(maiorPorcentagem >= porcentagemIgual){
                 //Assume que a coluna do id é a primeira nas duas tabelas
                 csv1[i][colunaIDCSV1] = csv2[posMaior][0]
-                csv2[posMaior][colunaIDCSV2] = csv1[i][0]
+                csv2[posMaior][colunaIDCSV1] = csv1[i][0]
+                numPareamentos++
             }
         }
     }
-
+    println("Número de pareamentos: $numPareamentos")
     println("Tempo pareamento: ${tempo/1000} segundos")
 }
 
@@ -85,7 +86,7 @@ fun removerDuplicados(
     csv: MutableList<MutableList<String>>,
     pontoDeCorte: Double,
     comparador: (linha1: MutableList<String>, linha2: MutableList<String>) -> Double,
-    comparadorMaisCompleto: (linha: MutableList<String>, linhaMaisCompleta: MutableList<String>) -> Boolean
+    combinadorDeDuplicatas: (List<List<String>>) -> MutableList<String>
 ){
     val tamanhoInicial = csv.size
 
@@ -107,17 +108,16 @@ fun removerDuplicados(
             if(listaIguais.isNotEmpty()){
                 listaIguais.add(0, i)
 
-                var maisCompleto = linhaCSV
-                var posMaisCompleto = i
-                for(pos in listaIguais){
-                    if(comparadorMaisCompleto(csv[pos], maisCompleto)){
-                        maisCompleto = csv[pos]
-                        posMaisCompleto = pos
-                    }
+                val duplicatas = mutableListOf<MutableList<String>>()
+
+                listaIguais.forEach{ pos ->
+                    duplicatas.add(csv[pos])
                 }
 
-                csv[i] = maisCompleto
-                listaIguais.remove(posMaisCompleto)
+                csv[i] = combinadorDeDuplicatas(duplicatas)
+
+                listaIguais.removeAt(0)
+                listaIguais.sort()
 
                 for((cont, pos) in listaIguais.withIndex()){
                     csv.removeAt(pos - cont)
