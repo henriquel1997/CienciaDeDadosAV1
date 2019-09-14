@@ -1,5 +1,6 @@
 import TipoComparacao.*
 import java.util.*
+import kotlin.system.measureTimeMillis
 
 const val NULL = "NULL"
 const val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\" // Windows
@@ -15,13 +16,13 @@ const val minIdadeOnibus = 0
 const val maxIdadeOnibus = 126
 
 fun main(){
-//    baseAlunos()
-//    baseDengue()
-//    baseOnibus()
-//    parearDuplicatasAlunos()
-//    parearDuplicatasDengue()
-//    parearDuplicatasOnibus()
-//    parearBases()
+    baseAlunos()
+    baseDengue()
+    baseOnibus()
+    removerDuplicatasAlunos()
+    removerDuplicatasDengue()
+    removerDuplicatasOnibus()
+    parearBases()
     juntarCSV()
 }
 
@@ -85,40 +86,46 @@ fun baseAlunos(){
 
     var linhasSemData = 0
 
-    for(i in 1 until csv.size){
-        csv[i][colunaNome] = csv[i][colunaNome].padronizarNome()
+    println("Padronizando e Higienizando Alunos:")
 
-        csv[i][colunaNomePai] = csv[i][colunaNomePai].padronizarNome()
+    val tempo = measureTimeMillis {
+        for(i in 1 until csv.size){
+            csv[i][colunaNome] = csv[i][colunaNome].padronizarNome()
 
-        csv[i][colunaNomeMae] = csv[i][colunaNomeMae].padronizarNome()
+            csv[i][colunaNomePai] = csv[i][colunaNomePai].padronizarNome()
 
-        csv[i][colunaSexo] = csv[i][colunaSexo].toUpperCase()
+            csv[i][colunaNomeMae] = csv[i][colunaNomeMae].padronizarNome()
 
-        val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "-")
-        csv[i][colunaData] = data
-        csv[i][colunaIdade] = idade.toString()
+            csv[i][colunaSexo] = csv[i][colunaSexo].toUpperCase()
 
-        if(idade in minIdadeAlunos..maxIdadeAlunos){
+            val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "-")
             csv[i][colunaData] = data
             csv[i][colunaIdade] = idade.toString()
-        }else{
-            csv[i][colunaData] = ""
-            csv[i][colunaIdade] = ""
+
+            if(idade in minIdadeAlunos..maxIdadeAlunos){
+                csv[i][colunaData] = data
+                csv[i][colunaIdade] = idade.toString()
+            }else{
+                csv[i][colunaData] = ""
+                csv[i][colunaIdade] = ""
+            }
+
+            if(data == NULL){
+                linhasSemData++
+            }
         }
 
-        if(data == NULL){
-            linhasSemData++
-        }
+        println("Linhas sem data: $linhasSemData")
     }
 
-    println("Linhas sem data: $linhasSemData")
+    println("Tempo: ${tempo/1000} segundos")
 
     val csvComBairrosPareados = parearBairros(csv, "${path}bairros.txt")
 
     writeCSV("${path}Base de Alunos3 Editado.csv", csvComBairrosPareados)
 }
 
-fun parearDuplicatasAlunos(){
+fun removerDuplicatasAlunos(){
     val csv = readCSV("${path}Base de Alunos3 Editado.csv")
 
     println("Removendo Duplicatas Alunos:")
@@ -183,55 +190,62 @@ fun baseDengue(){
     var linhasSemData = 0
     var linhasDengueSemData = 0
 
-    for(i in 1 until csv.size){
-        val nome = csv[i][colunaNome]
-        csv[i][colunaNome] = nome.padronizarNome()
+    println("Padronizando e Higienizando Dengue:")
 
-        val nomePai = csv[i][colunaNomePai]
-        csv[i][colunaNomePai] = nomePai.padronizarNome()
+    val tempo = measureTimeMillis {
+        for(i in 1 until csv.size){
+            val nome = csv[i][colunaNome]
+            csv[i][colunaNome] = nome.padronizarNome()
 
-        val nomeMae = csv[i][colunaNomeMae]
-        csv[i][colunaNomeMae] = nomeMae.padronizarNome()
+            val nomePai = csv[i][colunaNomePai]
+            csv[i][colunaNomePai] = nomePai.padronizarNome()
 
-        csv[i][colunaSexo] = csv[i][colunaSexo].toUpperCase()
+            val nomeMae = csv[i][colunaNomeMae]
+            csv[i][colunaNomeMae] = nomeMae.padronizarNome()
 
-        val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "/")
-        csv[i][colunaData] = data
-        csv[i][colunaIdade] = idade.toString()
+            csv[i][colunaSexo] = csv[i][colunaSexo].toUpperCase()
 
-        if(idade in minIdadeDengue..maxIdadeDengue){
+            val (data, idade) = processarData(csv[i][colunaData], calendar, i, sep = "/")
             csv[i][colunaData] = data
             csv[i][colunaIdade] = idade.toString()
-        }else{
-            csv[i][colunaData] = ""
-            csv[i][colunaIdade] = ""
+
+            if(idade in minIdadeDengue..maxIdadeDengue){
+                csv[i][colunaData] = data
+                csv[i][colunaIdade] = idade.toString()
+            }else{
+                csv[i][colunaData] = ""
+                csv[i][colunaIdade] = ""
+            }
+
+            val (dataDengue, _) = processarData(csv[i][colunaDataDengue], calendar, i, sep = "/")
+
+            if((data == NULL && dataDengue != NULL) || (data != NULL && dataDengue != NULL && dataDengue.toInt() > data.toInt())){
+                csv[i][colunaDataDengue] = dataDengue
+            }else{
+                csv[i][colunaDataDengue] = ""
+            }
+
+            if(data == NULL){
+                linhasSemData++
+            }
+            if(dataDengue == NULL){
+                linhasDengueSemData++
+            }
         }
 
-        val (dataDengue, _) = processarData(csv[i][colunaDataDengue], calendar, i, sep = "/")
-
-        if((data == NULL && dataDengue != NULL) || (data != NULL && dataDengue != NULL && dataDengue.toInt() > data.toInt())){
-            csv[i][colunaDataDengue] = dataDengue
-        }else{
-            csv[i][colunaDataDengue] = ""
-        }
-
-        if(data == NULL){
-            linhasSemData++
-        }
-        if(dataDengue == NULL){
-            linhasDengueSemData++
-        }
+        println("Linhas sem data de nascimento: $linhasSemData")
+        println("Linhas sem data da dengue: $linhasDengueSemData")
     }
 
-    println("Linhas sem data de nascimento: $linhasSemData")
-    println("Linhas sem data da dengue: $linhasDengueSemData")
+    println("Tempo: ${tempo/1000} segundos")
+
 
     val csvComBairrosPareados = parearBairros(csv, "${path}bairros.txt")
 
     writeCSV("${path}Base de Dengue3 Editado.csv", csvComBairrosPareados)
 }
 
-fun parearDuplicatasDengue(){
+fun removerDuplicatasDengue(){
     val csv = readCSV("${path}Base de Dengue3 Editado.csv")
 
     println("Removendo Duplicatas Dengue:")
@@ -289,41 +303,47 @@ fun baseOnibus(){
 
     var linhasSemData = 0
 
-    for(i in 1 until csv.size){
-        val nome = csv[i][colunaNome]
-        csv[i][colunaNome] = nome.padronizarNome()
+    println("Padronizando e Higienizando Alunos:")
 
-        val nomePai = csv[i][colunaNomePai]
-        csv[i][colunaNomePai] = nomePai.padronizarNome()
+    val tempo = measureTimeMillis {
+        for(i in 1 until csv.size){
+            val nome = csv[i][colunaNome]
+            csv[i][colunaNome] = nome.padronizarNome()
 
-        val nomeMae = csv[i][colunaNomeMae]
-        csv[i][colunaNomeMae] = nomeMae.padronizarNome()
+            val nomePai = csv[i][colunaNomePai]
+            csv[i][colunaNomePai] = nomePai.padronizarNome()
 
-        csv[i][colunaSexo] = if(csv[i][colunaSexo].toUpperCase() == "H") "M" else "F"
+            val nomeMae = csv[i][colunaNomeMae]
+            csv[i][colunaNomeMae] = nomeMae.padronizarNome()
 
-        val (data, idade) = processarDataSemBarra(csv[i][colunaData], calendar, i)
+            csv[i][colunaSexo] = if(csv[i][colunaSexo].toUpperCase() == "H") "M" else "F"
 
-        if(idade in minIdadeOnibus..maxIdadeOnibus){
-            csv[i][colunaData] = data
-            csv[i][colunaIdade] = idade.toString()
-        }else{
-            csv[i][colunaData] = ""
-            csv[i][colunaIdade] = ""
+            val (data, idade) = processarDataSemBarra(csv[i][colunaData], calendar)
+
+            if(idade in minIdadeOnibus..maxIdadeOnibus){
+                csv[i][colunaData] = data
+                csv[i][colunaIdade] = idade.toString()
+            }else{
+                csv[i][colunaData] = ""
+                csv[i][colunaIdade] = ""
+            }
+
+            if(data == NULL){
+                linhasSemData++
+            }
         }
 
-        if(data == NULL){
-            linhasSemData++
-        }
+        println("Linhas sem data: $linhasSemData")
     }
 
-    println("Linhas sem data: $linhasSemData")
+    println("Tempo: ${tempo/1000} segundos")
 
     val csvComBairrosPareados = parearBairros(csv, "${path}bairros.txt")
 
     writeCSV("${path}Base de Onibus3 Editado.csv", csvComBairrosPareados)
 }
 
-fun parearDuplicatasOnibus(){
+fun removerDuplicatasOnibus(){
     val csv = readCSV("${path}Base de Onibus3 Editado.csv")
 
     println("Removendo Duplicatas Onibus:")
@@ -365,47 +385,51 @@ fun parearBases(){
     val csvDengue = readCSV("${path}Base de Dengue3 Sem Duplicados.csv")
     val csvOnibus = readCSV("${path}Base de Onibus3 Sem Duplicados.csv")
 
-    println("Pareando Alunos e Dengue:")
+    val tempo = measureTimeMillis {
+        println("Pareando Alunos e Dengue:")
 
-    var cd = listOf(
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Nome"), JAROW, 0.8, getColumnIndex(csvDengue, "Nome")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Nome da Mae"), JAROW, 0.8, getColumnIndex(csvDengue, "Nome da Mae")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Nome do Pai"), JAROW, 0.8, getColumnIndex(csvDengue, "Nome do Pai")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Data de Nascimento"), LEVEN, 0.9, getColumnIndex(csvDengue, "Data de Nascimento")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "idBairro"), EQUALS, 1.0, getColumnIndex(csvDengue, "idBairro"))
-    )
+        var cd = listOf(
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Nome"), JAROW, 0.8, getColumnIndex(csvDengue, "Nome")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Nome da Mae"), JAROW, 0.8, getColumnIndex(csvDengue, "Nome da Mae")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Nome do Pai"), JAROW, 0.8, getColumnIndex(csvDengue, "Nome do Pai")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Data de Nascimento"), LEVEN, 0.9, getColumnIndex(csvDengue, "Data de Nascimento")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "idBairro"), EQUALS, 1.0, getColumnIndex(csvDengue, "idBairro"))
+        )
 
-    parearBases(csvAlunos, csvDengue, "idDengue", "idAluno", 4.0){ linha1, linha2 ->
-        calcularPontuacaoDuplicado(cd, linha1, linha2).toDouble()
+        parearBases(csvAlunos, csvDengue, "idDengue", "idAluno", 4.0){ linha1, linha2 ->
+            calcularPontuacaoDuplicado(cd, linha1, linha2).toDouble()
+        }
+
+        println("Pareando Alunos e Onibus:")
+
+        cd = listOf(
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Nome"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Nome da Mae"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome da Mae")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Nome do Pai"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome do Pai")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "Data de Nascimento"), LEVEN, 0.9, getColumnIndex(csvOnibus, "Data de Nascimento")),
+            ColunasDuplicado(getColumnIndex(csvAlunos, "idBairro"), EQUALS, 1.0, getColumnIndex(csvOnibus, "idBairro"))
+        )
+
+        parearBases(csvAlunos, csvOnibus, "idOnibus", "idAluno", 4.0){ linha1, linha2 ->
+            calcularPontuacaoDuplicado(cd, linha1, linha2).toDouble()
+        }
+
+        println("Pareando Dengue e Onibus:")
+
+        cd = listOf(
+            ColunasDuplicado(getColumnIndex(csvDengue, "Nome"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome")),
+            ColunasDuplicado(getColumnIndex(csvDengue, "Nome da Mae"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome da Mae")),
+            ColunasDuplicado(getColumnIndex(csvDengue, "Nome do Pai"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome do Pai")),
+            ColunasDuplicado(getColumnIndex(csvDengue, "Data de Nascimento"), LEVEN, 0.9, getColumnIndex(csvOnibus, "Data de Nascimento")),
+            ColunasDuplicado(getColumnIndex(csvDengue, "idBairro"), EQUALS, 1.0, getColumnIndex(csvOnibus, "idBairro"))
+        )
+
+        parearBases(csvDengue, csvOnibus, "idOnibus", "idDengue", 4.0){ linha1, linha2 ->
+            calcularPontuacaoDuplicado(cd, linha1, linha2).toDouble()
+        }
     }
 
-    println("Pareando Alunos e Onibus:")
-
-    cd = listOf(
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Nome"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Nome da Mae"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome da Mae")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Nome do Pai"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome do Pai")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "Data de Nascimento"), LEVEN, 0.9, getColumnIndex(csvOnibus, "Data de Nascimento")),
-        ColunasDuplicado(getColumnIndex(csvAlunos, "idBairro"), EQUALS, 1.0, getColumnIndex(csvOnibus, "idBairro"))
-    )
-
-    parearBases(csvAlunos, csvOnibus, "idOnibus", "idAluno", 4.0){ linha1, linha2 ->
-        calcularPontuacaoDuplicado(cd, linha1, linha2).toDouble()
-    }
-
-    println("Pareando Dengue e Onibus:")
-
-    cd = listOf(
-        ColunasDuplicado(getColumnIndex(csvDengue, "Nome"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome")),
-        ColunasDuplicado(getColumnIndex(csvDengue, "Nome da Mae"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome da Mae")),
-        ColunasDuplicado(getColumnIndex(csvDengue, "Nome do Pai"), JAROW, 0.8, getColumnIndex(csvOnibus, "Nome do Pai")),
-        ColunasDuplicado(getColumnIndex(csvDengue, "Data de Nascimento"), LEVEN, 0.9, getColumnIndex(csvOnibus, "Data de Nascimento")),
-        ColunasDuplicado(getColumnIndex(csvDengue, "idBairro"), EQUALS, 1.0, getColumnIndex(csvOnibus, "idBairro"))
-    )
-
-    parearBases(csvDengue, csvOnibus, "idOnibus", "idDengue", 4.0){ linha1, linha2 ->
-        calcularPontuacaoDuplicado(cd, linha1, linha2).toDouble()
-    }
+    println("Tempo de pareamento bases: ${tempo/1000} segundos")
 
     writeCSV("${path}Base de Alunos3 Pareado.csv", csvAlunos)
     writeCSV("${path}Base de Dengue3 Pareado.csv", csvDengue)
@@ -417,124 +441,134 @@ fun juntarCSV(){
     val csvDengue = readCSV("${path}Base de Dengue3 Pareado.csv")
     val csvOnibus = readCSV("${path}Base de Onibus3 Pareado.csv")
 
+    println("Tamanho inicial alunos: ${csvAlunos.size}")
+    println("Tamanho inicial dengue: ${csvDengue.size}")
+    println("Tamanho inicial onibus: ${csvOnibus.size}")
+    println("Tamanho total de linhas: ${csvAlunos.size + csvDengue.size + csvOnibus.size}")
+
     val ordemColunas = mutableListOf("ID", "Nome", "Nome da Mae", "Nome do Pai", "Sexo", "Data de Nascimento", "idade", "Bairro", "Data da Dengue", "Onibus", "1", "2", "3", "4", "5", "6", "7", "8", "9", "eUmAluno", "teveDengue", "andaDeOnibus")
-
-    val removerColunasDiferentes = { csv: MutableList<MutableList<String>> ->
-        var i = 1
-        while(i < csv[0].size){
-            val tipo = csv[0][i]
-            if(tipo != "idAluno" && tipo != "idDengue" && tipo != "idOnibus"){
-                if(!ordemColunas.contains(tipo)){
-                    removeColumn(csv, tipo)
-                    i--
-                }
-            }
-            i++
-        }
-    }
-
-    val adicionarColunasDeOutrasBases = { csv: MutableList<MutableList<String>> ->
-        ordemColunas.forEachIndexed { index,tipo ->
-            if(getColumnIndex(csv, tipo) < 0){
-                addNewColumn(csv, tipo, index)
-            }
-        }
-    }
-
-    removerColunasDiferentes(csvAlunos)
-    removerColunasDiferentes(csvDengue)
-    removerColunasDiferentes(csvOnibus)
-
-    adicionarColunasDeOutrasBases(csvAlunos)
-    adicionarColunasDeOutrasBases(csvDengue)
-    adicionarColunasDeOutrasBases(csvOnibus)
 
     val baseNova = mutableListOf<MutableList<String>>()
     baseNova.add(ordemColunas)
 
-    val combinadorDeLinhas = { duplicatas: MutableList<MutableList<String>> ->
-        val novaLinha = MutableList(duplicatas[0].size) { "" }
+    val tempo = measureTimeMillis {
+        val removerColunasDiferentes = { csv: MutableList<MutableList<String>> ->
+            var i = 1
+            while(i < csv[0].size){
+                val tipo = csv[0][i]
+                if(tipo != "idAluno" && tipo != "idDengue" && tipo != "idOnibus"){
+                    if(!ordemColunas.contains(tipo)){
+                        removeColumn(csv, tipo)
+                        i--
+                    }
+                }
+                i++
+            }
+        }
 
-        duplicatas.forEach { duplicata ->
-            duplicata.forEachIndexed { index, valor ->
-                if(valor.length > novaLinha[index].length){
-                    novaLinha[index] = valor
+        val adicionarColunasDeOutrasBases = { csv: MutableList<MutableList<String>> ->
+            ordemColunas.forEachIndexed { index,tipo ->
+                if(getColumnIndex(csv, tipo) < 0){
+                    addNewColumn(csv, tipo, index)
                 }
             }
         }
 
-        novaLinha
-    }
+        removerColunasDiferentes(csvAlunos)
+        removerColunasDiferentes(csvDengue)
+        removerColunasDiferentes(csvOnibus)
 
-    val juntarTabela = { nomeChave: String, csv: MutableList<MutableList<String>>, outrasTabelas: List<Pair<String, MutableList<MutableList<String>>>> ->
+        adicionarColunasDeOutrasBases(csvAlunos)
+        adicionarColunasDeOutrasBases(csvDengue)
+        adicionarColunasDeOutrasBases(csvOnibus)
 
-        var eAluno = false
-        var teveDengue = false
-        var andaDeOnibus = false
+        val combinadorDeLinhas = { duplicatas: MutableList<MutableList<String>> ->
+            val novaLinha = MutableList(duplicatas[0].size) { "" }
 
-        val atualizarFlags = { nome: String ->
-            when(nome){
-                "idAluno" -> eAluno = true
-                "idDengue" -> teveDengue = true
-                "idOnibus" -> andaDeOnibus = true
-            }
-        }
-
-        val colunaAluno = getColumnIndex(csv, "eUmAluno")
-        val colunaDengue = getColumnIndex(csv, "teveDengue")
-        val colunaOnibus = getColumnIndex(csv, "andaDeOnibus")
-
-        for(i in 1 until csv.size){
-            eAluno = false
-            teveDengue = false
-            andaDeOnibus = false
-
-            atualizarFlags(nomeChave)
-
-            val linhas = mutableListOf( csv[i] )
-
-            for((nomeChaveEstrangeira, tabela) in outrasTabelas){
-                val colunaChave = getColumnIndex(csv, nomeChaveEstrangeira)
-                val chaveEstrangeira = csv[i][colunaChave].toIntOrNull()
-                if(chaveEstrangeira != null){
-                    atualizarFlags(nomeChaveEstrangeira)
-
-                    val (linhaTabela, pos) = getLinha(tabela, chaveEstrangeira.toString())
-
-                    if(pos >= 0){
-                        linhas.add(linhaTabela)
-                        tabela.removeAt(pos)
+            duplicatas.forEach { duplicata ->
+                duplicata.forEachIndexed { index, valor ->
+                    if(valor.length > novaLinha[index].length){
+                        novaLinha[index] = valor
                     }
                 }
             }
 
-            val linhaCompleta = if(linhas.size == 1){
-                csv[i]
-            }else{
-                combinadorDeLinhas(linhas)
+            novaLinha
+        }
+
+        val juntarTabela = { nomeChave: String, csv: MutableList<MutableList<String>>, outrasTabelas: List<Pair<String, MutableList<MutableList<String>>>> ->
+
+            var eAluno = false
+            var teveDengue = false
+            var andaDeOnibus = false
+
+            val atualizarFlags = { nome: String ->
+                when(nome){
+                    "idAluno" -> eAluno = true
+                    "idDengue" -> teveDengue = true
+                    "idOnibus" -> andaDeOnibus = true
+                }
             }
 
-            linhaCompleta[colunaAluno] = eAluno.toString()
-            linhaCompleta[colunaDengue] = teveDengue.toString()
-            linhaCompleta[colunaOnibus] = andaDeOnibus.toString()
+            val colunaAluno = getColumnIndex(csv, "eUmAluno")
+            val colunaDengue = getColumnIndex(csv, "teveDengue")
+            val colunaOnibus = getColumnIndex(csv, "andaDeOnibus")
 
-            baseNova.add(linhaCompleta)
+            for(i in 1 until csv.size){
+                eAluno = false
+                teveDengue = false
+                andaDeOnibus = false
+
+                atualizarFlags(nomeChave)
+
+                val linhas = mutableListOf( csv[i] )
+
+                for((nomeChaveEstrangeira, tabela) in outrasTabelas){
+                    val colunaChave = getColumnIndex(csv, nomeChaveEstrangeira)
+                    val chaveEstrangeira = csv[i][colunaChave].toIntOrNull()
+                    if(chaveEstrangeira != null){
+                        atualizarFlags(nomeChaveEstrangeira)
+
+                        val (linhaTabela, pos) = getLinha(tabela, chaveEstrangeira.toString())
+
+                        if(pos >= 0){
+                            linhas.add(linhaTabela)
+                            tabela.removeAt(pos)
+                        }
+                    }
+                }
+
+                val linhaCompleta = if(linhas.size == 1){
+                    csv[i]
+                }else{
+                    combinadorDeLinhas(linhas)
+                }
+
+                linhaCompleta[colunaAluno] = eAluno.toString()
+                linhaCompleta[colunaDengue] = teveDengue.toString()
+                linhaCompleta[colunaOnibus] = andaDeOnibus.toString()
+
+                baseNova.add(linhaCompleta)
+            }
+        }
+
+        juntarTabela("idAluno", csvAlunos, listOf( "idDengue" to csvDengue, "idOnibus" to csvOnibus ))
+        juntarTabela("idDengue", csvDengue, listOf( "idAluno" to csvAlunos, "idOnibus" to csvOnibus ))
+        juntarTabela("idOnibus", csvOnibus, listOf( "idAluno" to csvAlunos, "idDengue" to csvDengue ))
+
+        baseNova.forEachIndexed { index, linha ->
+            if(index > 0){
+                linha[0] = (index - 1).toString()
+
+                while(linha.size > ordemColunas.size){
+                    linha.removeAt(linha.size - 1)
+                }
+            }
         }
     }
 
-    juntarTabela("idAluno", csvAlunos, listOf( "idDengue" to csvDengue, "idOnibus" to csvOnibus ))
-    juntarTabela("idDengue", csvDengue, listOf( "idAluno" to csvAlunos, "idOnibus" to csvOnibus ))
-    juntarTabela("idOnibus", csvOnibus, listOf( "idAluno" to csvAlunos, "idDengue" to csvDengue ))
-
-    baseNova.forEachIndexed { index, linha ->
-        if(index > 0){
-            linha[0] = (index - 1).toString()
-
-            while(linha.size > ordemColunas.size){
-                linha.removeAt(linha.size - 1)
-            }
-        }
-    }
+    println("Tamanho final: ${baseNova.size}")
+    println("Tempo para juntar todas as bases: ${tempo/1000} segundos")
 
     writeCSV("${path}Base Completa.csv" , baseNova)
 }

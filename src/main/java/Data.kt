@@ -19,7 +19,7 @@ fun getYearDiff(a: Calendar, b: Calendar): Int {
     return diff
 }
 
-fun processarData(data: String, calendar: Calendar, index: Int, anoMin: Int = 0, sep: String = "/", limitarPeloDiaAtual: Boolean = false): Pair<String, Int> {
+fun processarData(data: String, calendar: Calendar, anoMin: Int = 0, sep: String = "/", limitarPeloDiaAtual: Boolean = false): Pair<String, Int> {
     val valores = data.split(sep, ":", " ")
 
     if(valores.size >= 3){
@@ -44,42 +44,42 @@ fun processarData(data: String, calendar: Calendar, index: Int, anoMin: Int = 0,
         }
     }
 
-    println("$index - Data errada: $data")
+    //println("$index - Data errada: $data")
 
     return Pair(NULL, Integer.MIN_VALUE)
 }
 
-fun processarDataSemBarra(data: String, calendar: Calendar, index: Int, anoMin: Int = 0): Pair<String, Int> {
+fun processarDataSemBarra(data: String, calendar: Calendar, anoMin: Int = 0): Pair<String, Int> {
 
     data.toIntOrNull()?.let { numero ->
         val dataSemZero = numero.toString()
         when(dataSemZero.length){
             6 -> {
                 val dataComBarra = dataSemZero.substring(0, 1) + "/" + dataSemZero.substring(1, 2) + "/" + dataSemZero.substring(2, dataSemZero.length)
-                return processarData(dataComBarra, calendar, index, anoMin)
+                return processarData(dataComBarra, calendar, anoMin)
             }
             7 -> {
                 val dataComUltimaBarra = dataSemZero.substring(0, 3) + "/" + dataSemZero.substring(3, dataSemZero.length)
                 val dataComDoisDigDia = dataComUltimaBarra.substring(0, 2) + "/" + dataComUltimaBarra.substring(2, dataComUltimaBarra.length)
-                val parDoisDig = processarData(dataComDoisDigDia, calendar, index, anoMin)
+                val parDoisDig = processarData(dataComDoisDigDia, calendar, anoMin)
                 if(parDoisDig.first != NULL){
                     return parDoisDig
                 }
 
                 val dataComUmDigDia = dataComUltimaBarra.substring(0, 1) + "/" + dataComUltimaBarra.substring(1, dataComUltimaBarra.length)
-                return processarData(dataComUmDigDia, calendar, index, anoMin)
+                return processarData(dataComUmDigDia, calendar, anoMin)
 
             }
             8 -> {
                 val dataComBarra = dataSemZero.substring(0, 2) + "/" + dataSemZero.substring(2, 4) + "/" + dataSemZero.substring(4, dataSemZero.length)
-                return processarData(dataComBarra, calendar, index, anoMin)
+                return processarData(dataComBarra, calendar, anoMin)
             }
 
             else -> {}
         }
     }
 
-    println("$index - Data errada: $data")
+    //println("$index - Data errada: $data")
 
     return Pair(NULL, Integer.MIN_VALUE)
 }

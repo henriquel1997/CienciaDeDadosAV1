@@ -1,45 +1,49 @@
 import kotlin.system.measureTimeMillis
 
 fun parearBairros(csv: MutableList<MutableList<String>>, bairrosListPath: String): MutableList<MutableList<String>> {
-    val colunaBairro = getColumnIndex(csv, "Bairro")
-    if(colunaBairro > -1){
-        val bairros = readTXTList(bairrosListPath)
-        //val colunaPorcSimilar = addNewColumn(csv, "porcBairro")
-        val colunaIDBairroPareado = addNewColumn(csv, "idBairro")
+    val tempo = measureTimeMillis {
+        val colunaBairro = getColumnIndex(csv, "Bairro")
+        if(colunaBairro > -1){
+            val bairros = readTXTList(bairrosListPath)
+            //val colunaPorcSimilar = addNewColumn(csv, "porcBairro")
+            val colunaIDBairroPareado = addNewColumn(csv, "idBairro")
 
-        var menorPorcentagem = Double.MAX_VALUE
-        var nomeBairro = ""
-        var nomeMaisParecido = ""
+            var menorPorcentagem = Double.MAX_VALUE
+            var nomeBairro = ""
+            var nomeMaisParecido = ""
 
-        for(i in 1 until csv.size){
-            val bairroAtual = csv[i][colunaBairro]
+            for(i in 1 until csv.size){
+                val bairroAtual = csv[i][colunaBairro]
 
-            var maiorPorc = 0.0
-            var bairroMaisParecido = NULL
-            var idBairroMaisParecido = -1
+                var maiorPorc = 0.0
+                var bairroMaisParecido = NULL
+                var idBairroMaisParecido = -1
 
-            bairros.forEachIndexed { index, bairro ->
-                val porc = levenshteinPercentage(bairro, bairroAtual)
-                if(porc > maiorPorc){
-                    maiorPorc = porc
-                    bairroMaisParecido = bairro
-                    idBairroMaisParecido = index
+                bairros.forEachIndexed { index, bairro ->
+                    val porc = levenshteinPercentage(bairro, bairroAtual)
+                    if(porc > maiorPorc){
+                        maiorPorc = porc
+                        bairroMaisParecido = bairro
+                        idBairroMaisParecido = index
+                    }
                 }
+
+                if(maiorPorc < menorPorcentagem){
+                    menorPorcentagem = maiorPorc
+                    nomeBairro = bairroAtual
+                    nomeMaisParecido = bairroMaisParecido
+                }
+
+                //csv[i][colunaPorcSimilar] = maiorPorc.toString()
+                csv[i][colunaBairro] = bairroMaisParecido
+                csv[i][colunaIDBairroPareado] = idBairroMaisParecido.toString()
             }
 
-            if(maiorPorc < menorPorcentagem){
-                menorPorcentagem = maiorPorc
-                nomeBairro = bairroAtual
-                nomeMaisParecido = bairroMaisParecido
-            }
-
-            //csv[i][colunaPorcSimilar] = maiorPorc.toString()
-            csv[i][colunaBairro] = bairroMaisParecido
-            csv[i][colunaIDBairroPareado] = idBairroMaisParecido.toString()
+            println("Menor porcentagem: $menorPorcentagem - Nome: $nomeBairro, Mais parecido: $nomeMaisParecido")
         }
-
-        println("Menor porcentagem: $menorPorcentagem - Nome: $nomeBairro, Mais parecido: $nomeMaisParecido")
     }
+
+    println("Tempo pareamento bairros: ${tempo/1000} segundos")
 
     return csv
 }
@@ -136,6 +140,8 @@ fun removerDuplicados(
 
     val tamanhoFinal = csv.size
     println("Tempo pareamento: ${tempo/1000} segundos")
+    println("Tamanho inicial: $tamanhoInicial")
+    println("Tamanho final: $tamanhoFinal")
     println("Linhas removidas: ${tamanhoInicial - tamanhoFinal}")
 }
 
