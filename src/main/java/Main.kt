@@ -16,13 +16,13 @@ const val minIdadeOnibus = 0
 const val maxIdadeOnibus = 126
 
 fun main(){
-    baseAlunos()
-    baseDengue()
-    baseOnibus()
-    removerDuplicatasAlunos()
-    removerDuplicatasDengue()
-    removerDuplicatasOnibus()
-    parearBases()
+//    baseAlunos()
+//    baseDengue()
+//    baseOnibus()
+//    removerDuplicatasAlunos()
+//    removerDuplicatasDengue()
+//    removerDuplicatasOnibus()
+//    parearBases()
     juntarCSV()
 }
 
@@ -446,7 +446,7 @@ fun juntarCSV(){
     println("Tamanho inicial onibus: ${csvOnibus.size}")
     println("Tamanho total de linhas: ${csvAlunos.size + csvDengue.size + csvOnibus.size}")
 
-    val ordemColunas = mutableListOf("ID", "Nome", "Nome da Mae", "Nome do Pai", "Sexo", "Data de Nascimento", "idade", "Bairro", "Data da Dengue", "Onibus", "1", "2", "3", "4", "5", "6", "7", "8", "9", "eUmAluno", "teveDengue", "andaDeOnibus")
+    val ordemColunas = mutableListOf("ID", "Nome", "Nome da Mae", "Nome do Pai", "Sexo", "Data de Nascimento", "idade", "Bairro", "BairroID", "Data da Dengue", "Onibus", "1", "2", "3", "4", "5", "6", "7", "8", "9", "eUmAluno", "teveDengue", "andaDeOnibus")
 
     val baseNova = mutableListOf<MutableList<String>>()
     baseNova.add(ordemColunas)
@@ -544,9 +544,9 @@ fun juntarCSV(){
                     combinadorDeLinhas(linhas)
                 }
 
-                linhaCompleta[colunaAluno] = eAluno.toString()
-                linhaCompleta[colunaDengue] = teveDengue.toString()
-                linhaCompleta[colunaOnibus] = andaDeOnibus.toString()
+                linhaCompleta[colunaAluno] = if(eAluno) "1" else "0"
+                linhaCompleta[colunaDengue] = if(teveDengue) "1" else "0"
+                linhaCompleta[colunaOnibus] = if(andaDeOnibus) "1" else "0"
 
                 baseNova.add(linhaCompleta)
             }
@@ -556,6 +556,10 @@ fun juntarCSV(){
         juntarTabela("idDengue", csvDengue, listOf( "idAluno" to csvAlunos, "idOnibus" to csvOnibus ))
         juntarTabela("idOnibus", csvOnibus, listOf( "idAluno" to csvAlunos, "idDengue" to csvDengue ))
 
+        val csvBairros = readCSV("${path}bairrosFortaleza.csv")
+        val colunaBairro = getColumnIndex(baseNova, "Bairro")
+        val colunaBairroID = getColumnIndex(baseNova, "BairroID")
+
         baseNova.forEachIndexed { index, linha ->
             if(index > 0){
                 linha[0] = (index - 1).toString()
@@ -563,8 +567,32 @@ fun juntarCSV(){
                 while(linha.size > ordemColunas.size){
                     linha.removeAt(linha.size - 1)
                 }
+
+                var maisParecido = ""
+                var idMaisParecido = -1
+                var porcMaisParecido = Double.MIN_VALUE
+
+                for (i in 1 until csvBairros.size){
+                    val porcentagem = levenshteinPercentage(linha[colunaBairro].padronizarNome().toUpperCase(), csvBairros[i][0])
+                    if(porcentagem > porcMaisParecido){
+                        maisParecido = csvBairros[i][0]
+                        idMaisParecido = (i - 1)
+                        porcMaisParecido = porcentagem
+                    }
+                }
+
+                linha[colunaBairro] = maisParecido
+                linha[colunaBairroID] = idMaisParecido.toString()
             }
         }
+
+        addNewColumn(csvBairros, "ID", 0)
+        csvBairros.forEachIndexed { index, linha ->
+            if(index > 0){
+                linha[0] = (index - 1).toString()
+            }
+        }
+        writeCSV( "${path}bairrosFortalezaComID.csv", csvBairros)
     }
 
     println("Tamanho final: ${baseNova.size}")
