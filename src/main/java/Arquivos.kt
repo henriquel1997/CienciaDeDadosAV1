@@ -46,6 +46,25 @@ fun addNewColumn(csv: MutableList<MutableList<String>>, nome: String, pos: Int =
     return pos
 }
 
+fun removeColumn(csv: MutableList<MutableList<String>>, nome: String){
+    val pos = getColumnIndex(csv, nome)
+    if(pos >= 0){
+        for(linha in csv){
+            linha.removeAt(pos)
+        }
+    }
+}
+
+fun getLinha(csv: MutableList<MutableList<String>>, ID: String): Pair<MutableList<String>, Int>{
+    csv.forEachIndexed { index, linha ->
+        if(linha[0] == ID){
+            return linha to index
+        }
+    }
+
+    return mutableListOf<String>() to -1
+}
+
 fun tamanhoMaiorLinha(csv: List<List<*>>): Int {
     var maior = 0
     for(linha in csv){

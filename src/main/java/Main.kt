@@ -21,7 +21,8 @@ fun main(){
 //    parearDuplicatasAlunos()
 //    parearDuplicatasDengue()
 //    parearDuplicatasOnibus()
-    parearBases()
+//    parearBases()
+    juntarCSV()
 }
 
 enum class TipoComparacao{
@@ -78,7 +79,7 @@ fun baseAlunos(){
     val colunaSexo = getColumnIndex(csv, "Sexo")
 
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
-    val colunaIdade = addNewColumn(csv, "idade")
+    val colunaIdade = addNewColumn(csv, "idade", colunaData + 1)
 
     val calendar = Calendar.getInstance()
 
@@ -173,7 +174,7 @@ fun baseDengue(){
     val colunaSexo = getColumnIndex(csv, "Sexo")
 
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
-    val colunaIdade = addNewColumn(csv, "idade")
+    val colunaIdade = addNewColumn(csv, "idade", colunaData + 1)
 
     val colunaDataDengue = getColumnIndex(csv, "Data da Dengue")
 
@@ -277,8 +278,12 @@ fun baseOnibus(){
 
     val colunaSexo = getColumnIndex(csv, "Sexo")
 
+    for(i in 8 until csv[0].size){
+        csv[0][i] = (i - 7).toString()
+    }
+
     val colunaData = getColumnIndex(csv, "Data de Nascimento")
-    val colunaIdade = addNewColumn(csv, "idade")
+    val colunaIdade = addNewColumn(csv, "idade", colunaData + 1)
 
     val calendar = Calendar.getInstance()
 
@@ -407,6 +412,133 @@ fun parearBases(){
     writeCSV("${path}Base de Onibus3 Pareado.csv", csvOnibus)
 }
 
+fun juntarCSV(){
+    val csvAlunos = readCSV("${path}Base de Alunos3 Pareado.csv")
+    val csvDengue = readCSV("${path}Base de Dengue3 Pareado.csv")
+    val csvOnibus = readCSV("${path}Base de Onibus3 Pareado.csv")
+
+    val ordemColunas = mutableListOf("ID", "Nome", "Nome da Mae", "Nome do Pai", "Sexo", "Data de Nascimento", "idade", "Bairro", "Data da Dengue", "Onibus", "1", "2", "3", "4", "5", "6", "7", "8", "9", "eUmAluno", "teveDengue", "andaDeOnibus")
+
+    val removerColunasDiferentes = { csv: MutableList<MutableList<String>> ->
+        var i = 1
+        while(i < csv[0].size){
+            val tipo = csv[0][i]
+            if(tipo != "idAluno" && tipo != "idDengue" && tipo != "idOnibus"){
+                if(!ordemColunas.contains(tipo)){
+                    removeColumn(csv, tipo)
+                    i--
+                }
+            }
+            i++
+        }
+    }
+
+    val adicionarColunasDeOutrasBases = { csv: MutableList<MutableList<String>> ->
+        ordemColunas.forEachIndexed { index,tipo ->
+            if(getColumnIndex(csv, tipo) < 0){
+                addNewColumn(csv, tipo, index)
+            }
+        }
+    }
+
+    removerColunasDiferentes(csvAlunos)
+    removerColunasDiferentes(csvDengue)
+    removerColunasDiferentes(csvOnibus)
+
+    adicionarColunasDeOutrasBases(csvAlunos)
+    adicionarColunasDeOutrasBases(csvDengue)
+    adicionarColunasDeOutrasBases(csvOnibus)
+
+    val baseNova = mutableListOf<MutableList<String>>()
+    baseNova.add(ordemColunas)
+
+    val combinadorDeLinhas = { duplicatas: MutableList<MutableList<String>> ->
+        val novaLinha = MutableList(duplicatas[0].size) { "" }
+
+        duplicatas.forEach { duplicata ->
+            duplicata.forEachIndexed { index, valor ->
+                if(valor.length > novaLinha[index].length){
+                    novaLinha[index] = valor
+                }
+            }
+        }
+
+        novaLinha
+    }
+
+    val juntarTabela = { nomeChave: String, csv: MutableList<MutableList<String>>, outrasTabelas: List<Pair<String, MutableList<MutableList<String>>>> ->
+
+        var eAluno = false
+        var teveDengue = false
+        var andaDeOnibus = false
+
+        val atualizarFlags = { nome: String ->
+            when(nome){
+                "idAluno" -> eAluno = true
+                "idDengue" -> teveDengue = true
+                "idOnibus" -> andaDeOnibus = true
+            }
+        }
+
+        val colunaAluno = getColumnIndex(csv, "eUmAluno")
+        val colunaDengue = getColumnIndex(csv, "teveDengue")
+        val colunaOnibus = getColumnIndex(csv, "andaDeOnibus")
+
+        for(i in 1 until csv.size){
+            eAluno = false
+            teveDengue = false
+            andaDeOnibus = false
+
+            atualizarFlags(nomeChave)
+
+            val linhas = mutableListOf( csv[i] )
+
+            for((nomeChaveEstrangeira, tabela) in outrasTabelas){
+                val colunaChave = getColumnIndex(csv, nomeChaveEstrangeira)
+                val chaveEstrangeira = csv[i][colunaChave].toIntOrNull()
+                if(chaveEstrangeira != null){
+                    atualizarFlags(nomeChaveEstrangeira)
+
+                    val (linhaTabela, pos) = getLinha(tabela, chaveEstrangeira.toString())
+
+                    if(pos >= 0){
+                        linhas.add(linhaTabela)
+                        tabela.removeAt(pos)
+                    }
+                }
+            }
+
+            val linhaCompleta = if(linhas.size == 1){
+                csv[i]
+            }else{
+                combinadorDeLinhas(linhas)
+            }
+
+            linhaCompleta[colunaAluno] = eAluno.toString()
+            linhaCompleta[colunaDengue] = teveDengue.toString()
+            linhaCompleta[colunaOnibus] = andaDeOnibus.toString()
+
+            baseNova.add(linhaCompleta)
+        }
+    }
+
+    juntarTabela("idAluno", csvAlunos, listOf( "idDengue" to csvDengue, "idOnibus" to csvOnibus ))
+    juntarTabela("idDengue", csvDengue, listOf( "idAluno" to csvAlunos, "idOnibus" to csvOnibus ))
+    juntarTabela("idOnibus", csvOnibus, listOf( "idAluno" to csvAlunos, "idDengue" to csvDengue ))
+
+    baseNova.forEachIndexed { index, linha ->
+        if(index > 0){
+            linha[0] = (index - 1).toString()
+
+            while(linha.size > ordemColunas.size){
+                linha.removeAt(linha.size - 1)
+            }
+        }
+    }
+
+    writeCSV("${path}Base Completa.csv" , baseNova)
+}
+
 fun Boolean.toDouble(): Double {
     return if(this){
         1.0
@@ -428,39 +560,39 @@ fun MutableList<MutableList<String>>.copy(): MutableList<MutableList<String>> {
     return newList
 }
 
-fun compararDuplicatas(filepath: String, newFilepath: String){
-    val csv = readCSV(filepath)
-
-    val colunaNome = getColumnIndex(csv, "Nome")
-    val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
-    val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
-    val colunaSexo = getColumnIndex(csv, "Sexo")
-    val colunaData = getColumnIndex(csv, "Data de Nascimento")
-    val colunaIdade = getColumnIndex(csv, "idade")
-    val colunaIdBairro = getColumnIndex(csv, "idBairro")
-
-//    val jaroWrinklerOf = { linha1: MutableList<String> , linha2: MutableList<String>, coluna: Int  ->
-//        jaroWinklerSimilarity(linha1[coluna], linha2[coluna])
+//fun compararDuplicatas(filepath: String, newFilepath: String){
+//    val csv = readCSV(filepath)
+//
+//    val colunaNome = getColumnIndex(csv, "Nome")
+//    val colunaNomePai = getColumnIndex(csv, "Nome do Pai")
+//    val colunaNomeMae = getColumnIndex(csv, "Nome da Mae")
+//    val colunaSexo = getColumnIndex(csv, "Sexo")
+//    val colunaData = getColumnIndex(csv, "Data de Nascimento")
+//    val colunaIdade = getColumnIndex(csv, "idade")
+//    val colunaIdBairro = getColumnIndex(csv, "idBairro")
+//
+////    val jaroWrinklerOf = { linha1: MutableList<String> , linha2: MutableList<String>, coluna: Int  ->
+////        jaroWinklerSimilarity(linha1[coluna], linha2[coluna])
+////    }
+//
+//    val concatenarTudo = { linha: MutableList<String> ->
+//        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaIdBairro]}${linha[colunaSexo]}"
 //    }
-
-    val concatenarTudo = { linha: MutableList<String> ->
-        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}${linha[colunaData]}${linha[colunaIdade]}${linha[colunaIdBairro]}${linha[colunaSexo]}"
-    }
-
-//    val concatenarNomes = { linha: MutableList<String> ->
-//        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}"
+//
+////    val concatenarNomes = { linha: MutableList<String> ->
+////        "${linha[colunaNome]}${linha[colunaNomePai]}${linha[colunaNomeMae]}"
+////    }
+//
+//    println("Tudo concatenado:")
+//    criarComparacaoPareamento(csv){ linha1, linha2 ->
+//        val linha1Conc = concatenarTudo(linha1)
+//        val linha2Conc = concatenarTudo(linha2)
+//
+//        jaroWinklerSimilarity(linha1Conc, linha2Conc)
 //    }
-
-    println("Tudo concatenado:")
-    criarComparacaoPareamento(csv){ linha1, linha2 ->
-        val linha1Conc = concatenarTudo(linha1)
-        val linha2Conc = concatenarTudo(linha2)
-
-        jaroWinklerSimilarity(linha1Conc, linha2Conc)
-    }
-
-    writeCSV(newFilepath, csv)
-}
+//
+//    writeCSV(newFilepath, csv)
+//}
 
 //data class ColunasDuplicadoComparacao(
 //    val posColunaOriginal: Int,

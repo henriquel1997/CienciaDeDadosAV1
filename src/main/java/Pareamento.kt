@@ -73,7 +73,7 @@ fun parearBases(
             if(maiorPorcentagem >= porcentagemIgual){
                 //Assume que a coluna do id é a primeira nas duas tabelas
                 csv1[i][colunaIDCSV1] = csv2[posMaior][0]
-                csv2[posMaior][colunaIDCSV1] = csv1[i][0]
+                csv2[posMaior][colunaIDCSV2] = csv1[i][0]
                 numPareamentos++
             }
         }
