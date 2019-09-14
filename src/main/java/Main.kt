@@ -556,7 +556,7 @@ fun juntarCSV(){
         juntarTabela("idDengue", csvDengue, listOf( "idAluno" to csvAlunos, "idOnibus" to csvOnibus ))
         juntarTabela("idOnibus", csvOnibus, listOf( "idAluno" to csvAlunos, "idDengue" to csvDengue ))
 
-        val csvBairros = readCSV("${path}bairrosFortaleza.csv")
+        val csvBairros = readCSV("${path}bairrosFortaleza.csv", usarVirgula = false)
         val colunaBairro = getColumnIndex(baseNova, "Bairro")
         val colunaBairroID = getColumnIndex(baseNova, "BairroID")
 
@@ -587,6 +587,7 @@ fun juntarCSV(){
         }
 
         addNewColumn(csvBairros, "ID", 0)
+        addNewColumn(csvBairros, "bairro.regional.id", 1)
         csvBairros.forEachIndexed { index, linha ->
             if(index > 0){
                 linha[0] = (index - 1).toString()

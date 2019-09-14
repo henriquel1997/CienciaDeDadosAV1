@@ -1,10 +1,15 @@
 import java.io.File
 
-fun readCSV(filepath: String, sep: String = ";"): MutableList<MutableList<String>> {
+fun readCSV(filepath: String, sep: String = ";", usarVirgula: Boolean = true): MutableList<MutableList<String>> {
     val linhas = mutableListOf<MutableList<String>>()
 
     for(linhasTexto in File(filepath).readLines(Charsets.ISO_8859_1)){
-        linhas.add(linhasTexto.split(sep, ",").toMutableList())
+        if(usarVirgula){
+            linhas.add(linhasTexto.split(sep, ",").toMutableList())
+        }else{
+            linhas.add(linhasTexto.split(sep).toMutableList())
+        }
+
     }
 
     return linhas
