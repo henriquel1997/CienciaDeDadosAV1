@@ -3,7 +3,8 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 
 const val NULL = "NULL"
-const val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\" // Windows
+const val path = ""
+//const val path = "C:\\Users\\Henrique\\Documents\\Unifor\\Ciência de Dados\\" // Windows
 //const val path = "/Users/henriquedelima/Downloads/Equipe4/" // Mac
 
 const val minIdadeAlunos = 0
@@ -16,13 +17,13 @@ const val minIdadeOnibus = 0
 const val maxIdadeOnibus = 126
 
 fun main(){
-//    baseAlunos()
-//    baseDengue()
-//    baseOnibus()
-//    removerDuplicatasAlunos()
-//    removerDuplicatasDengue()
-//    removerDuplicatasOnibus()
-//    parearBases()
+    baseAlunos()
+    baseDengue()
+    baseOnibus()
+    removerDuplicatasAlunos()
+    removerDuplicatasDengue()
+    removerDuplicatasOnibus()
+    parearBases()
     juntarCSV()
 }
 
