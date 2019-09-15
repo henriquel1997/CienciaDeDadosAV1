@@ -19,7 +19,7 @@ fun getYearDiff(a: Calendar, b: Calendar): Int {
     return diff
 }
 
-fun processarData(data: String, calendar: Calendar, anoMin: Int = 0, sep: String = "/", limitarPeloDiaAtual: Boolean = false): Pair<String, Int> {
+fun processarData(data: String, calendar: Calendar, anoMin: Int = 0, sep: String = "/"): Pair<String, Int> {
     val valores = data.split(sep, ":", " ")
 
     if(valores.size >= 3){
@@ -32,7 +32,7 @@ fun processarData(data: String, calendar: Calendar, anoMin: Int = 0, sep: String
                         if(dia in 1..diaMax){
                             val dataAtual = calendar.timeInMillis
                             val dataValor = calData.timeInMillis
-                            if(!limitarPeloDiaAtual || dataValor < dataAtual){
+                            if(dataValor < dataAtual){
                                 val dataPadronizada = setupDateString(valores[2])+setupDateString(valores[1])+setupDateString(valores[0])
                                 val idade = getYearDiff(calData, calendar)
                                 return Pair(dataPadronizada, idade)
